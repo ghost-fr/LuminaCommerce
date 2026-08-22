@@ -15,10 +15,40 @@ one merging both sides.
 
 | Contract | Status | Owner of current spec |
 |---|---|---|
+| Auth/session (`IAuthService`, `IUserSession`) | Frozen v1 | This doc, §0 |
 | Cart (`ICartLine`, `ICartSummary`) | Frozen v1 | This doc, §1 |
 | POS sale (`IPosSaleService`, commands) | Frozen v1 | This doc, §2 |
 | Product catalogue read model | Not yet specified | Phase 2 |
 | Commercial documents | Not yet specified | Phase 5 |
+
+---
+
+## 0. Auth / session contract
+
+`Lumina.Contracts.Auth.IAuthService` / `IUserSession` — the login screen and
+capability-gated nav shell build against this. This is Phase 1, ready now.
+
+**UI (Grok) may assume:**
+- `IAuthService.CurrentSession` is `null` until login succeeds — use that as the
+  single source of truth for "show login screen" vs. "show main nav," don't track a
+  separate `isLoggedIn` flag in the UI.
+- `IUserSession.HasCapability(...)` is a pure, synchronous, side-effect-free check
+  against an already-loaded set — safe to call from XAML value converters/bindings to
+  show/hide menu items and buttons. It never hits the network or DB.
+- `LoginResult.Status` has four values (`Success`, `InvalidCredentials`, `UserInactive`,
+  `StoreNotAssigned`) — UI should show a distinct, friendly message per status rather
+  than one generic "login failed," since the fix differs (retry password vs. contact
+  admin vs. store assignment issue).
+- Single-store tenants (the common case) never need a store picker — omit
+  `RequestedStoreId` in `LoginRequest` and the backend resolves the default store
+  automatically.
+
+**Backend (Claude) must guarantee:**
+- Password hashes are never exposed anywhere in `IUserSession` or `LoginResult` — UI
+  gets capabilities and identity only, never credential material.
+- `Capabilities` strings are stable, documented constants (`Lumina.Domain.Identity.
+  Capabilities`) — UI can hardcode capability-string checks in XAML bindings without
+  fear of silent renames breaking nav visibility.
 
 ---
 
