@@ -123,15 +123,16 @@ legally happen, or failing to print one that did.
   render it as a QR code at the mandated size/contrast/quiet-zone, not construct it.
 - An outbox entry exists for AEAT submission (if VERI*FACTU mode active).
 
-### 2.4 Open questions to resolve before Phase 3 implementation starts
+### 2.4 Resolved decisions (was: open questions)
 
-- Exact `RejectionReason` taxonomy (enum vs. free text) — needed so UI can localize
-  messages rather than display raw backend strings. Proposal: add a `RejectionCode`
-  enum alongside the free-text reason once Phase 3 backend work starts.
-- Whether `CompleteSaleAsync` needs a client-generated idempotency key to safely retry
-  after a network timeout without risking a double sale. Recommend yes — add
-  `IdempotencyKey` (client-generated GUID) to `CompleteSaleRequest` before Phase 3
-  implementation, not after.
+- **`RejectionCode`** — added as a typed enum alongside free-text `RejectionReason`.
+  UI switches on `RejectionCode` for the primary message/styling; `RejectionReason`
+  is secondary detail (e.g. an expandable "details" line), not the primary copy.
+- **`IdempotencyKey`** — added to `CompleteSaleRequest` (client-generated `Guid`).
+  UI generates one fresh key per *submission attempt*, reuses the same key on retry
+  of that same attempt (timeout/dropped connection), and generates a new key only
+  for a genuinely new sale attempt. Backend uses it to no-op duplicate submissions
+  rather than risk a double sale — this is what makes retry-after-timeout safe.
 
 ---
 

@@ -21,11 +21,20 @@ public record RemoveLineRequest(Guid ProductId, decimal Quantity);
 /// has already created the immutable Sale aggregate, emitted stock events, generated
 /// the VeriFactu hash-chained record, and produced a QR payload — none of that is
 /// re-derivable from the UI, so the UI must treat CompleteSaleResult as authoritative.
+///
+/// IdempotencyKey: UI generates a fresh Guid the first time the operator submits
+/// tenders, and MUST resend the SAME key on any retry of that same attempt (e.g.
+/// after a timeout or connection drop). Backend uses this to detect and safely
+/// no-op a duplicate submission instead of creating a second Sale. UI must NOT
+/// generate a new key on retry, and MUST generate a new key for a genuinely new
+/// sale (new cart, or same cart resubmitted after a Rejected result and operator
+/// changes).
 /// </summary>
 public record CompleteSaleRequest(
     Guid RegisterId,
     Guid? CustomerId,
-    IReadOnlyList<TenderLine> Tenders);
+    IReadOnlyList<TenderLine> Tenders,
+    Guid IdempotencyKey);
 
 public enum CompleteSaleStatus
 {
@@ -37,11 +46,31 @@ public enum CompleteSaleStatus
     SuccessPendingSubmission
 }
 
+/// <summary>
+/// Machine-readable rejection taxonomy so UI can localize/style messages instead of
+/// displaying raw backend strings. RejectionReason (free text) remains for logs/
+/// operator detail; UI should switch on RejectionCode for the primary message and
+/// only show RejectionReason as secondary detail (e.g. an expandable "details" line).
+/// </summary>
+public enum RejectionCode
+{
+    None,
+    StockUnavailable,
+    PaymentValidationFailed,
+    RegisterNotOpen,
+    PriceChanged,
+    CustomerRequired,
+    DuplicateSubmission,
+    FiscalChainError,
+    Unknown
+}
+
 public record CompleteSaleResult(
     CompleteSaleStatus Status,
     Guid? SaleId,
     string? TicketNumber,
     string? QrPayload,
+    RejectionCode RejectionCode,
     string? RejectionReason);
 
 /// <summary>
