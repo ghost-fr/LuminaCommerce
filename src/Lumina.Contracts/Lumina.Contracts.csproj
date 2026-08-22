@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Lumina.Contracts</RootNamespace>
+  </PropertyGroup>
+  <!-- No project references: this is the seam. Keep it dependency-free
+       so both backend and UI projects can reference it without pulling
+       in each other's dependency trees. -->
+</Project>
