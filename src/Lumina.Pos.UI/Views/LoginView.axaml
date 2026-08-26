@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+    <Grid>
+        <Border HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Width="380"
+                Padding="32"
+                CornerRadius="8"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                BorderThickness="1">
+            <StackPanel Spacing="16">
+                <TextBlock Text="Lumina POS"
+                           FontSize="28"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Sign in to continue"
+                           Opacity="0.7"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
+
+                <TextBox Watermark="Username"
+                         Text="{Binding Username}"
+                         IsEnabled="{Binding !IsBusy}" />
+
+                <TextBox Watermark="Password"
+                         Text="{Binding Password}"
+                         PasswordChar="•"
+                         IsEnabled="{Binding !IsBusy}" />
+
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#E74C3C"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <Button Content="Sign in"
+                        Command="{Binding LoginCommand}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        Classes="accent"
+                        Height="40" />
+
+                <TextBlock Text="Dev default: admin / changeme"
+                           Opacity="0.45"
+                           FontSize="12"
+                           HorizontalAlignment="Center"
+                           Margin="0,8,0,0" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

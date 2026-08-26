@@ -1,0 +1,94 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.ShellView"
+             x:DataType="vm:ShellViewModel">
+    <DockPanel>
+        <!-- Top bar -->
+        <Border DockPanel.Dock="Top"
+                Padding="16,10"
+                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                BorderThickness="0,0,0,1">
+            <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                    <TextBlock Text="Lumina POS" FontWeight="SemiBold" FontSize="16" VerticalAlignment="Center" />
+                    <TextBlock Text="—" Opacity="0.4" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
+                    <TextBlock Text="(" Opacity="0.5" VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding Username}" Opacity="0.5" VerticalAlignment="Center" />
+                    <TextBlock Text=")" Opacity="0.5" VerticalAlignment="Center" />
+                </StackPanel>
+                <Button Grid.Column="1"
+                        Content="Sign out"
+                        Command="{Binding LogoutCommand}"
+                        Padding="12,6" />
+            </Grid>
+        </Border>
+
+        <!-- Left nav — capability-gated -->
+        <Border DockPanel.Dock="Left"
+                Width="200"
+                Padding="8"
+                Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
+                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                BorderThickness="0,0,1,0">
+            <StackPanel Spacing="4">
+                <TextBlock Text="NAVIGATION"
+                           FontSize="11"
+                           FontWeight="SemiBold"
+                           Opacity="0.5"
+                           Margin="8,8,8,4" />
+
+                <Button Content="POS / Cart"
+                        Command="{Binding OpenPosCommand}"
+                        IsVisible="{Binding CanOperatePos}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,10" />
+
+                <Button Content="Catalogue"
+                        Command="{Binding OpenCatalogueCommand}"
+                        IsVisible="{Binding CanManageCatalogue}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,10" />
+
+                <Button Content="Stock"
+                        Command="{Binding OpenStockCommand}"
+                        IsVisible="{Binding CanAdjustStock}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,10" />
+
+                <Button Content="Reports"
+                        Command="{Binding OpenReportsCommand}"
+                        IsVisible="{Binding CanViewReports}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,10" />
+
+                <Button Content="VeriFactu"
+                        Command="{Binding OpenFiscalCommand}"
+                        IsVisible="{Binding CanManageFiscal}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Left"
+                        Padding="12,10" />
+            </StackPanel>
+        </Border>
+
+        <!-- Content area -->
+        <Grid Margin="24">
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                <TextBlock Text="Welcome"
+                           FontSize="22"
+                           FontWeight="SemiBold"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding StatusMessage}"
+                           Opacity="0.7"
+                           HorizontalAlignment="Center"
+                           TextWrapping="Wrap" />
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>
