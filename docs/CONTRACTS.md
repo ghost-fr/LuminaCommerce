@@ -17,8 +17,8 @@ one merging both sides.
 |---|---|---|
 | Auth/session (`IAuthService`, `IUserSession`) | Frozen v1 | This doc, §0 |
 | Cart (`ICartLine`, `ICartSummary`) | Frozen v1 | This doc, §1 |
-| POS sale (`IPosSaleService`, commands) | Frozen v1 | This doc, §2 |
-| Product catalogue read model | Not yet specified | Phase 2 |
+| POS sale (`IPosSaleService`, commands) | Frozen v1 — **backend implemented** | This doc, §2 |
+| Product catalogue (`IProductCatalogueService`) | Frozen v1 | This doc, §3 |
 | Commercial documents | Not yet specified | Phase 5 |
 
 ---
@@ -49,6 +49,44 @@ capability-gated nav shell build against this. This is Phase 1, ready now.
 - `Capabilities` strings are stable, documented constants (`Lumina.Domain.Identity.
   Capabilities`) — UI can hardcode capability-string checks in XAML bindings without
   fear of silent renames breaking nav visibility.
+
+---
+
+## 3. Product catalogue contract
+
+`Lumina.Contracts.Catalogue.IProductCatalogueService` — product browsing/search and
+barcode lookup. Backend logic (pricing resolution) is implemented; the DI-facing
+`SearchAsync`/`FindByBarcodeAsync` methods currently throw `NotImplementedException`
+pending the composition-root tenant-scoping wiring described in §3.3 below — this is
+a wiring gap, not a design gap, and doesn't block UI work starting against the
+contract shape.
+
+### 3.1 `IProductSummary` — what UI can assume
+
+- `CurrentPrice` already reflects any active promotion — never recompute or apply a
+  discount client-side.
+- `OriginalPrice` is `null` when no promotion is active; non-null (and greater than
+  `CurrentPrice`) when one is — safe to bind directly to a "was X, now Y" strike-through
+  display without an extra check beyond the null.
+- `HasActivePromotion` exists as a convenience even though it's derivable from
+  `OriginalPrice != null` — use whichever reads more naturally in the binding.
+
+### 3.2 `FindByBarcodeAsync` — POS scan flow
+
+Returns `null` on no match **or** an inactive product — UI shows a single "product not
+found" state for both cases rather than distinguishing "doesn't exist" from
+"discontinued." If that distinction turns out to matter for the cashier workflow,
+that's a contract change to propose here first, not a UI-side workaround.
+
+### 3.3 Known gap: tenant-scoping wiring (backend follow-up, not a UI concern)
+
+`ProductCatalogueService.SearchAsync`/`FindByBarcodeAsync` need `ICurrentTenantProvider`
+wired at the composition root (`App.axaml.cs`) the same way `AuthService` does — not
+yet done as of this contract version. An internal method
+(`FindByBarcodeInternalAsync`) that takes an explicit `tenantId` is fully implemented
+and unit-tested (see `PosSaleServiceTests`), and is what `PosSaleService.AddLineAsync`
+actually calls today. The public DI-facing methods will be finished in the same pass
+as the composition-root work.
 
 ---
 
