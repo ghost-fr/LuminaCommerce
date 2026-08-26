@@ -11,7 +11,7 @@ namespace Lumina.BackOffice.UI;
 /// Lumina.Infrastructure.DependencyInjection.AddLuminaBackend helper. Keep these
 /// two files' registration calls identical; if they diverge, that's a bug.
 /// </summary>
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 

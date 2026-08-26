@@ -13,7 +13,7 @@ namespace Lumina.Pos.UI;
 /// from here so the DI wiring in Lumina.Infrastructure.DependencyInjection stays the
 /// single source of truth.
 /// </summary>
-public partial class App : Application
+public partial class App : Avalonia.Application
 {
     public static IServiceProvider Services { get; private set; } = null!;
 
