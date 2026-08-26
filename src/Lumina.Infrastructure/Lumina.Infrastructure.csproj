@@ -15,5 +15,7 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <!-- Added for DependencyInjection.cs (AddLuminaBackend composition-root helper) -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
   </ItemGroup>
 </Project>
