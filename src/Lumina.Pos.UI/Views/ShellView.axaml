@@ -1,8 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             xmlns:mock="using:Lumina.Pos.UI.Mock"
              x:Class="Lumina.Pos.UI.Views.ShellView"
-             x:Name="Root"
              x:DataType="vm:ShellViewModel"
              Background="{StaticResource Brush.Canvas}">
   <DockPanel>
@@ -93,7 +93,6 @@
 
     <Grid>
 
-      <!-- INICIO -->
       <ScrollViewer IsVisible="{Binding IsInicio}" Padding="20,18">
         <StackPanel Spacing="14">
           <TextBlock Text="Inicio" Classes="section-title" />
@@ -142,13 +141,8 @@
         </StackPanel>
       </ScrollViewer>
 
-      <!-- TPV -->
       <Grid IsVisible="{Binding IsTpv}" RowDefinitions="Auto,*,Auto" Margin="14">
-        <Grid.DataContext>
-          <Binding Path="Pos"/>
-        </Grid.DataContext>
-
-        <Border Grid.Row="0" Classes="card" Padding="12,10" Margin="0,0,0,10">
+        <Border Grid.Row="0" Classes="card" Padding="12,10" Margin="0,0,0,10" DataContext="{Binding Pos}">
           <Grid ColumnDefinitions="Auto,*,Auto">
             <StackPanel Orientation="Horizontal" Spacing="16">
               <TextBlock Text="Tienda 001" FontWeight="SemiBold" VerticalAlignment="Center"/>
@@ -160,7 +154,7 @@
           </Grid>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,300">
+        <Grid Grid.Row="1" ColumnDefinitions="*,300" DataContext="{Binding Pos}">
           <Border Classes="card" Margin="0,0,10,0" Padding="0">
             <DockPanel>
               <Border DockPanel.Dock="Top" Background="#F9FAFB" BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,0,1" Padding="12,8">
@@ -175,7 +169,7 @@
               </Border>
               <ListBox ItemsSource="{Binding Lines}" BorderThickness="0" Background="Transparent">
                 <ListBox.ItemTemplate>
-                  <DataTemplate x:DataType="vm:CartLineRowProxy">
+                  <DataTemplate x:DataType="mock:CartLineRow">
                     <Grid ColumnDefinitions="90,*,70,80,60,90" Margin="12,6">
                       <TextBlock Text="{Binding Code}"/>
                       <TextBlock Grid.Column="1" Text="{Binding Name}"/>
@@ -223,251 +217,270 @@
 
         <Border Grid.Row="2" Classes="card" Margin="0,10,0,0" Padding="10,8">
           <WrapPanel>
-            <Button Classes="fkey" Content="F2 Ticket" Command="{Binding CompleteMockSaleCommand}"/>
-            <Button Classes="fkey" Content="F3 Clientes" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="clientes"/>
-            <Button Classes="fkey" Content="F4 Artículos" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="articulos"/>
-            <Button Classes="fkey" Content="Esc Inicio" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="inicio"/>
+            <Button Classes="fkey" Content="F2 Ticket" Command="{Binding Pos.CompleteMockSaleCommand}"/>
+            <Button Classes="fkey" Content="F3 Clientes" Command="{Binding NavigateCommand}" CommandParameter="clientes"/>
+            <Button Classes="fkey" Content="F4 Artículos" Command="{Binding NavigateCommand}" CommandParameter="articulos"/>
+            <Button Classes="fkey" Content="Esc Inicio" Command="{Binding NavigateCommand}" CommandParameter="inicio"/>
           </WrapPanel>
         </Border>
       </Grid>
 
-      <!-- ARTÍCULOS -->
-      <DockPanel IsVisible="{Binding IsArticulos}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Products"/>
-        </DockPanel.DataContext>
-        <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
-          <TextBlock Text="Artículos" Classes="section-title"/>
-          <Grid ColumnDefinitions="*,Auto">
-            <TextBox Classes="field" Watermark="Buscar por código, nombre o familia…" Text="{Binding Search}"/>
-            <Button Grid.Column="1" Classes="secondary" Content="Actualizar" Command="{Binding RefreshCommand}" Margin="8,0,0,0"/>
-          </Grid>
-        </StackPanel>
-        <Border Classes="card" Padding="0">
-          <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False"
-                    IsReadOnly="True" CanUserResizeColumns="True" GridLinesVisibility="Horizontal" BorderThickness="0">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="100"/>
-              <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
-              <DataGridTextColumn Header="Familia" Binding="{Binding Family}" Width="120"/>
-              <DataGridTextColumn Header="PVP" Binding="{Binding Price, StringFormat='{}{0:0.00} €'}" Width="90"/>
-              <DataGridTextColumn Header="IVA" Binding="{Binding Vat, StringFormat='{}{0:P0}'}" Width="70"/>
-              <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70"/>
-              <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Active}" Width="70"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsArticulos}" Content="{Binding Products}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:ProductsModuleViewModel">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
+                <TextBlock Text="Artículos" Classes="section-title"/>
+                <Grid ColumnDefinitions="*,Auto">
+                  <TextBox Classes="field" Watermark="Buscar…" Text="{Binding Search}"/>
+                  <Button Grid.Column="1" Classes="secondary" Content="Actualizar" Command="{Binding RefreshCommand}" Margin="8,0,0,0"/>
+                </Grid>
+              </StackPanel>
+              <Border Classes="card" Padding="0">
+                <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="100"/>
+                    <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="Familia" Binding="{Binding Family}" Width="120"/>
+                    <DataGridTextColumn Header="PVP" Binding="{Binding Price, StringFormat='{}{0:0.00} €'}" Width="90"/>
+                    <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70"/>
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Active}" Width="70"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Border>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- CLIENTES -->
-      <DockPanel IsVisible="{Binding IsClientes}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Customers"/>
-        </DockPanel.DataContext>
-        <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
-          <TextBlock Text="Clientes" Classes="section-title"/>
-          <TextBox Classes="field" Watermark="Buscar por nombre, NIF o teléfono…" Text="{Binding Search}"/>
-        </StackPanel>
-        <Border Classes="card" Padding="0">
-          <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="90"/>
-              <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
-              <DataGridTextColumn Header="NIF" Binding="{Binding Nif}" Width="120"/>
-              <DataGridTextColumn Header="Teléfono" Binding="{Binding Phone}" Width="120"/>
-              <DataGridTextColumn Header="Saldo" Binding="{Binding Balance, StringFormat='{}{0:N2} €'}" Width="100"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsClientes}" Content="{Binding Customers}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:CustomersModuleViewModel">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
+                <TextBlock Text="Clientes" Classes="section-title"/>
+                <TextBox Classes="field" Watermark="Buscar…" Text="{Binding Search}"/>
+              </StackPanel>
+              <Border Classes="card" Padding="0">
+                <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="90"/>
+                    <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
+                    <DataGridTextColumn Header="NIF" Binding="{Binding Nif}" Width="120"/>
+                    <DataGridTextColumn Header="Teléfono" Binding="{Binding Phone}" Width="120"/>
+                    <DataGridTextColumn Header="Saldo" Binding="{Binding Balance, StringFormat='{}{0:N2} €'}" Width="100"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Border>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- VENTAS -->
-      <DockPanel IsVisible="{Binding IsVentas}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Sales"/>
-        </DockPanel.DataContext>
-        <TextBlock DockPanel.Dock="Top" Text="Ventas / Tickets" Classes="section-title" Margin="0,0,0,12"/>
-        <Border Classes="card" Padding="0">
-          <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Nº Ticket" Binding="{Binding Number}" Width="100"/>
-              <DataGridTextColumn Header="Fecha" Binding="{Binding Date}" Width="110"/>
-              <DataGridTextColumn Header="Hora" Binding="{Binding Time}" Width="80"/>
-              <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='{}{0:N2} €'}" Width="100"/>
-              <DataGridTextColumn Header="Empleado" Binding="{Binding Employee}" Width="100"/>
-              <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="120"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsVentas}" Content="{Binding Sales}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:SalesModuleViewModel">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Ventas / Tickets" Classes="section-title" Margin="0,0,0,12"/>
+              <Border Classes="card" Padding="0">
+                <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nº Ticket" Binding="{Binding Number}" Width="100"/>
+                    <DataGridTextColumn Header="Fecha" Binding="{Binding Date}" Width="110"/>
+                    <DataGridTextColumn Header="Hora" Binding="{Binding Time}" Width="80"/>
+                    <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='{}{0:N2} €'}" Width="100"/>
+                    <DataGridTextColumn Header="Empleado" Binding="{Binding Employee}" Width="100"/>
+                    <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="120"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Border>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- STOCK -->
-      <DockPanel IsVisible="{Binding IsStock}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Stock"/>
-        </DockPanel.DataContext>
-        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
-          <TextBlock Text="Stock" Classes="section-title"/>
-          <TextBlock Text="Niveles actuales y movimientos recientes (datos de demostración)." Classes="caption"/>
-        </StackPanel>
-        <Grid ColumnDefinitions="*,*">
-          <Border Classes="card" Margin="0,0,8,0" Padding="0">
-            <DataGrid ItemsSource="{Binding Levels}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="90"/>
-                <DataGridTextColumn Header="Producto" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70"/>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
-          <Border Grid.Column="1" Classes="card" Padding="0">
-            <DataGrid ItemsSource="{Binding Movements}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Fecha" Binding="{Binding When}" Width="130"/>
-                <DataGridTextColumn Header="Tipo" Binding="{Binding Type}" Width="100"/>
-                <DataGridTextColumn Header="Producto" Binding="{Binding ProductCode}" Width="90"/>
-                <DataGridTextColumn Header="Cant." Binding="{Binding Qty}" Width="60"/>
-                <DataGridTextColumn Header="Saldo" Binding="{Binding BalanceAfter}" Width="60"/>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
-        </Grid>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsStock}" Content="{Binding Stock}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:StockModuleViewModel">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+                <TextBlock Text="Stock" Classes="section-title"/>
+                <TextBlock Text="Niveles y movimientos (demostración)." Classes="caption"/>
+              </StackPanel>
+              <Grid ColumnDefinitions="*,*">
+                <Border Classes="card" Margin="0,0,8,0" Padding="0">
+                  <DataGrid ItemsSource="{Binding Levels}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="90"/>
+                      <DataGridTextColumn Header="Producto" Binding="{Binding Name}" Width="*"/>
+                      <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" Width="70"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
+                <Border Grid.Column="1" Classes="card" Padding="0">
+                  <DataGrid ItemsSource="{Binding Movements}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Fecha" Binding="{Binding When}" Width="130"/>
+                      <DataGridTextColumn Header="Tipo" Binding="{Binding Type}" Width="100"/>
+                      <DataGridTextColumn Header="Producto" Binding="{Binding ProductCode}" Width="90"/>
+                      <DataGridTextColumn Header="Cant." Binding="{Binding Qty}" Width="60"/>
+                      <DataGridTextColumn Header="Saldo" Binding="{Binding BalanceAfter}" Width="60"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
+              </Grid>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- COMPRAS -->
-      <DockPanel IsVisible="{Binding IsCompras}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Purchases"/>
-        </DockPanel.DataContext>
-        <TextBlock DockPanel.Dock="Top" Text="Compras y proveedores" Classes="section-title" Margin="0,0,0,12"/>
-        <Grid RowDefinitions="*,*">
-          <Border Classes="card" Margin="0,0,0,8" Padding="0">
-            <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Pedido" Binding="{Binding Number}" Width="120"/>
-                <DataGridTextColumn Header="Proveedor" Binding="{Binding Supplier}" Width="*"/>
-                <DataGridTextColumn Header="Fecha" Binding="{Binding Date}" Width="110"/>
-                <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="100"/>
-                <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='{}{0:N2} €'}" Width="100"/>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
-          <Border Grid.Row="1" Classes="card" Padding="0">
-            <DataGrid ItemsSource="{Binding Suppliers}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-              <DataGrid.Columns>
-                <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="80"/>
-                <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
-                <DataGridTextColumn Header="NIF" Binding="{Binding Nif}" Width="120"/>
-                <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180"/>
-                <DataGridTextColumn Header="Pedidos abiertos" Binding="{Binding OpenOrders}" Width="120"/>
-              </DataGrid.Columns>
-            </DataGrid>
-          </Border>
-        </Grid>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsCompras}" Content="{Binding Purchases}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:PurchasesModuleViewModel">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Compras y proveedores" Classes="section-title" Margin="0,0,0,12"/>
+              <Grid RowDefinitions="*,*">
+                <Border Classes="card" Margin="0,0,0,8" Padding="0">
+                  <DataGrid ItemsSource="{Binding Orders}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Pedido" Binding="{Binding Number}" Width="120"/>
+                      <DataGridTextColumn Header="Proveedor" Binding="{Binding Supplier}" Width="*"/>
+                      <DataGridTextColumn Header="Fecha" Binding="{Binding Date}" Width="110"/>
+                      <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="100"/>
+                      <DataGridTextColumn Header="Total" Binding="{Binding Total, StringFormat='{}{0:N2} €'}" Width="100"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
+                <Border Grid.Row="1" Classes="card" Padding="0">
+                  <DataGrid ItemsSource="{Binding Suppliers}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="80"/>
+                      <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
+                      <DataGridTextColumn Header="NIF" Binding="{Binding Nif}" Width="120"/>
+                      <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="180"/>
+                      <DataGridTextColumn Header="Abiertos" Binding="{Binding OpenOrders}" Width="90"/>
+                    </DataGrid.Columns>
+                  </DataGrid>
+                </Border>
+              </Grid>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- CAJA -->
-      <ScrollViewer IsVisible="{Binding IsCaja}" Padding="20">
-        <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left" DataContext="{Binding Cash}">
-          <TextBlock Text="Caja" Classes="section-title"/>
-          <TextBlock Text="{Binding Status}" Classes="caption"/>
-          <Border Classes="card">
-            <StackPanel Spacing="10">
-              <DockPanel><TextBlock Text="Fondo de apertura"/><TextBlock DockPanel.Dock="Right" Text="{Binding OpeningFloat, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
-              <DockPanel><TextBlock Text="Ventas efectivo"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-              <DockPanel><TextBlock Text="Ventas tarjeta"/><TextBlock DockPanel.Dock="Right" Text="{Binding CardSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-              <Border Height="1" Background="{StaticResource Brush.Line}"/>
-              <DockPanel><TextBlock Text="Efectivo esperado" FontWeight="SemiBold"/><TextBlock DockPanel.Dock="Right" Text="{Binding ExpectedCash, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
-              <DockPanel><TextBlock Text="En cajón (contado)"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashInDrawer, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-              <Button Classes="primary" Content="Cerrar caja (simulado)" Command="{Binding CloseRegisterCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+      <ContentControl IsVisible="{Binding IsCaja}" Content="{Binding Cash}" Margin="20">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:CashModuleViewModel">
+            <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+              <TextBlock Text="Caja" Classes="section-title"/>
+              <TextBlock Text="{Binding Status}" Classes="caption"/>
+              <Border Classes="card">
+                <StackPanel Spacing="10">
+                  <DockPanel><TextBlock Text="Fondo de apertura"/><TextBlock DockPanel.Dock="Right" Text="{Binding OpeningFloat, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
+                  <DockPanel><TextBlock Text="Ventas efectivo"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+                  <DockPanel><TextBlock Text="Ventas tarjeta"/><TextBlock DockPanel.Dock="Right" Text="{Binding CardSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+                  <Border Height="1" Background="{StaticResource Brush.Line}"/>
+                  <DockPanel><TextBlock Text="Efectivo esperado" FontWeight="SemiBold"/><TextBlock DockPanel.Dock="Right" Text="{Binding ExpectedCash, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
+                  <DockPanel><TextBlock Text="En cajón"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashInDrawer, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+                  <Button Classes="primary" Content="Cerrar caja (simulado)" Command="{Binding CloseRegisterCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+                </StackPanel>
+              </Border>
             </StackPanel>
-          </Border>
-        </StackPanel>
-      </ScrollViewer>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- INFORMES -->
-      <ScrollViewer IsVisible="{Binding IsInformes}" Padding="20">
-        <StackPanel Spacing="14" DataContext="{Binding Reports}">
-          <TextBlock Text="Informes" Classes="section-title"/>
-          <UniformGrid Columns="4">
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Ventas" Classes="caption"/><TextBlock Text="{Binding SalesTotal, StringFormat='{}{0:N2} €'}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Tickets" Classes="caption"/><TextBlock Text="{Binding TicketCount}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Ticket medio" Classes="caption"/><TextBlock Text="{Binding AvgTicket, StringFormat='{}{0:N2} €'}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-            <Border Classes="card"><StackPanel><TextBlock Text="Clientes" Classes="caption"/><TextBlock Text="{Binding CustomerCount}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-          </UniformGrid>
-          <TextBlock Text="Los read models de reporting se conectarán en la Fase 7 del backend." Classes="muted"/>
-        </StackPanel>
-      </ScrollViewer>
+      <ContentControl IsVisible="{Binding IsInformes}" Content="{Binding Reports}" Margin="20">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:ReportsModuleViewModel">
+            <StackPanel Spacing="14">
+              <TextBlock Text="Informes" Classes="section-title"/>
+              <UniformGrid Columns="4">
+                <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Ventas" Classes="caption"/><TextBlock Text="{Binding SalesTotal, StringFormat='{}{0:N2} €'}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Tickets" Classes="caption"/><TextBlock Text="{Binding TicketCount}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Ticket medio" Classes="caption"/><TextBlock Text="{Binding AvgTicket, StringFormat='{}{0:N2} €'}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                <Border Classes="card"><StackPanel><TextBlock Text="Clientes" Classes="caption"/><TextBlock Text="{Binding CustomerCount}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+              </UniformGrid>
+              <TextBlock Text="Read models de reporting — Fase 7." Classes="muted"/>
+            </StackPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- USUARIOS -->
-      <DockPanel IsVisible="{Binding IsUsuarios}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="Users"/>
-        </DockPanel.DataContext>
-        <TextBlock DockPanel.Dock="Top" Text="Usuarios y roles" Classes="section-title" Margin="0,0,0,12"/>
-        <Border Classes="card" Padding="0">
-          <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Usuario" Binding="{Binding Username}" Width="120"/>
-              <DataGridTextColumn Header="Nombre" Binding="{Binding DisplayName}" Width="160"/>
-              <DataGridTextColumn Header="Rol" Binding="{Binding Role}" Width="100"/>
-              <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Active}" Width="70"/>
-              <DataGridTextColumn Header="Capacidades" Binding="{Binding Capabilities}" Width="*"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsUsuarios}" Content="{Binding Users}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:UsersModuleViewModel">
+            <DockPanel>
+              <TextBlock DockPanel.Dock="Top" Text="Usuarios y roles" Classes="section-title" Margin="0,0,0,12"/>
+              <Border Classes="card" Padding="0">
+                <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Usuario" Binding="{Binding Username}" Width="120"/>
+                    <DataGridTextColumn Header="Nombre" Binding="{Binding DisplayName}" Width="160"/>
+                    <DataGridTextColumn Header="Rol" Binding="{Binding Role}" Width="100"/>
+                    <DataGridCheckBoxColumn Header="Activo" Binding="{Binding Active}" Width="70"/>
+                    <DataGridTextColumn Header="Capacidades" Binding="{Binding Capabilities}" Width="*"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Border>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- CONFIG -->
-      <ScrollViewer IsVisible="{Binding IsConfig}" Padding="20">
-        <StackPanel Spacing="12" MaxWidth="480" DataContext="{Binding Settings}">
-          <TextBlock Text="Configuración" Classes="section-title"/>
-          <TextBlock Text="Nombre de tienda" Classes="caption"/><TextBox Classes="field" Text="{Binding StoreName}"/>
-          <TextBlock Text="NIF" Classes="caption"/><TextBox Classes="field" Text="{Binding Nif}"/>
-          <TextBlock Text="Límite SIF (cadena hash)" Classes="caption"/><TextBox Classes="field" Text="{Binding SifBoundary}"/>
-          <CheckBox IsChecked="{Binding VeriFactuMode}" Content="Modo VERI*FACTU activo" Margin="0,8,0,0"/>
-          <TextBlock Text="Impresora de tickets" Classes="caption"/><TextBox Classes="field" Text="{Binding TicketPrinter}"/>
-          <Button Classes="primary" Content="Guardar" Command="{Binding SaveCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
-          <TextBlock Text="{Binding StatusMessage}" Classes="muted"/>
-        </StackPanel>
-      </ScrollViewer>
+      <ContentControl IsVisible="{Binding IsConfig}" Content="{Binding Settings}" Margin="20">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:SettingsModuleViewModel">
+            <StackPanel Spacing="12" MaxWidth="480">
+              <TextBlock Text="Configuración" Classes="section-title"/>
+              <TextBlock Text="Nombre de tienda" Classes="caption"/><TextBox Classes="field" Text="{Binding StoreName}"/>
+              <TextBlock Text="NIF" Classes="caption"/><TextBox Classes="field" Text="{Binding Nif}"/>
+              <TextBlock Text="Límite SIF" Classes="caption"/><TextBox Classes="field" Text="{Binding SifBoundary}"/>
+              <CheckBox IsChecked="{Binding VeriFactuMode}" Content="Modo VERI*FACTU activo" Margin="0,8,0,0"/>
+              <TextBlock Text="Impresora de tickets" Classes="caption"/><TextBox Classes="field" Text="{Binding TicketPrinter}"/>
+              <Button Classes="primary" Content="Guardar" Command="{Binding SaveCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+              <TextBlock Text="{Binding StatusMessage}" Classes="muted"/>
+            </StackPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- VERIFACTU -->
-      <DockPanel IsVisible="{Binding IsVerifactu}" Margin="18">
-        <DockPanel.DataContext>
-          <Binding Path="VeriFactu"/>
-        </DockPanel.DataContext>
-        <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
-          <TextBlock Text="VeriFactu" Classes="section-title"/>
-          <UniformGrid Columns="4">
-            <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Emitidos" Classes="caption"/><TextBlock Text="{Binding Emitted}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Aceptados" Classes="caption"/><TextBlock Text="{Binding Accepted}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource Brush.Success}"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Pendientes" Classes="caption"/><TextBlock Text="{Binding Pending}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-            <Border Classes="card"><StackPanel><TextBlock Text="Rechazados" Classes="caption"/><TextBlock Text="{Binding Rejected}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
-          </UniformGrid>
-          <TextBlock Text="{Binding ConnectionStatus}" Classes="caption"/>
-        </StackPanel>
-        <Border Classes="card" Padding="0">
-          <DataGrid ItemsSource="{Binding Records}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
-            <DataGrid.Columns>
-              <DataGridTextColumn Header="Nº Factura" Binding="{Binding InvoiceNo}" Width="140"/>
-              <DataGridTextColumn Header="Fecha" Binding="{Binding When}" Width="140"/>
-              <DataGridTextColumn Header="Importe" Binding="{Binding Amount, StringFormat='{}{0:N2} €'}" Width="100"/>
-              <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="140"/>
-              <DataGridTextColumn Header="Resp. AEAT" Binding="{Binding AeatCode}" Width="100"/>
-            </DataGrid.Columns>
-          </DataGrid>
-        </Border>
-      </DockPanel>
+      <ContentControl IsVisible="{Binding IsVerifactu}" Content="{Binding VeriFactu}" Margin="18">
+        <ContentControl.ContentTemplate>
+          <DataTemplate x:DataType="vm:VeriFactuModuleViewModel">
+            <DockPanel>
+              <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
+                <TextBlock Text="VeriFactu" Classes="section-title"/>
+                <UniformGrid Columns="4">
+                  <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Emitidos" Classes="caption"/><TextBlock Text="{Binding Emitted}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                  <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Aceptados" Classes="caption"/><TextBlock Text="{Binding Accepted}" FontSize="22" FontWeight="SemiBold" Foreground="{StaticResource Brush.Success}"/></StackPanel></Border>
+                  <Border Classes="card" Margin="0,0,8,0"><StackPanel><TextBlock Text="Pendientes" Classes="caption"/><TextBlock Text="{Binding Pending}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                  <Border Classes="card"><StackPanel><TextBlock Text="Rechazados" Classes="caption"/><TextBlock Text="{Binding Rejected}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
+                </UniformGrid>
+                <TextBlock Text="{Binding ConnectionStatus}" Classes="caption"/>
+              </StackPanel>
+              <Border Classes="card" Padding="0">
+                <DataGrid ItemsSource="{Binding Records}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
+                  <DataGrid.Columns>
+                    <DataGridTextColumn Header="Nº Factura" Binding="{Binding InvoiceNo}" Width="140"/>
+                    <DataGridTextColumn Header="Fecha" Binding="{Binding When}" Width="140"/>
+                    <DataGridTextColumn Header="Importe" Binding="{Binding Amount, StringFormat='{}{0:N2} €'}" Width="100"/>
+                    <DataGridTextColumn Header="Estado" Binding="{Binding Status}" Width="140"/>
+                    <DataGridTextColumn Header="Resp. AEAT" Binding="{Binding AeatCode}" Width="100"/>
+                  </DataGrid.Columns>
+                </DataGrid>
+              </Border>
+            </DockPanel>
+          </DataTemplate>
+        </ContentControl.ContentTemplate>
+      </ContentControl>
 
-      <!-- AYUDA -->
       <ScrollViewer IsVisible="{Binding IsAyuda}" Padding="24">
         <StackPanel Spacing="12" MaxWidth="560">
           <TextBlock Text="Ayuda" Classes="section-title"/>
-          <TextBlock Text="Atajos de teclado (TPV)" FontWeight="SemiBold"/>
-          <TextBlock Text="F2 — Cobrar ticket (mock)&#x0a;F3 — Clientes&#x0a;F4 — Artículos&#x0a;Esc — Volver a Inicio" Classes="caption"/>
-          <TextBlock Text="Arquitectura" FontWeight="SemiBold" Margin="0,12,0,0"/>
-          <TextBlock Text="La UI se enlaza a Lumina.Contracts. El cobro fiscal real usa IPosSaleService + VeriFactu. Los listados usan datos de demostración hasta que existan read models." Classes="caption" TextWrapping="Wrap"/>
+          <TextBlock Text="Atajos TPV" FontWeight="SemiBold"/>
+          <TextBlock Text="F2 — Cobrar (mock) · F3 — Clientes · F4 — Artículos · Esc — Inicio" Classes="caption"/>
+          <TextBlock Text="La UI usa Lumina.Contracts. El cobro fiscal real pasa por IPosSaleService. Los listados son datos de demostración hasta los read models." Classes="caption" TextWrapping="Wrap"/>
         </StackPanel>
       </ScrollViewer>
 
