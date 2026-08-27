@@ -1,10 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Lumina.Pos.UI.MainWindow"
-        Title="Lumina Commerce — POS"
-        Width="1280" Height="800"
-        MinWidth="1024" MinHeight="640"
+        Title="Lumina Commerce"
+        Width="1360" Height="820"
+        MinWidth="1100" MinHeight="680"
         WindowStartupLocation="CenterScreen"
-        Background="#F4F6F8">
+        Background="{StaticResource Brush.Canvas}">
     <ContentControl x:Name="Host" />
 </Window>
