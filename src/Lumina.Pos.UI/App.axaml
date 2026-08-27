@@ -1,67 +1,202 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="Lumina.Pos.UI.App">
-    <Application.Styles>
-        <FluentTheme />
+             x:Class="Lumina.Pos.UI.App"
+             RequestedThemeVariant="Light">
+    <Application.Resources>
+        <!-- Design tokens — single source of visual truth -->
+        <Color x:Key="Color.Brand">#E8A317</Color>
+        <Color x:Key="Color.BrandDark">#C48A0F</Color>
+        <Color x:Key="Color.Primary">#0F6B45</Color>
+        <Color x:Key="Color.PrimaryHover">#0C5537</Color>
+        <Color x:Key="Color.PrimarySoft">#E6F4ED</Color>
+        <Color x:Key="Color.Ink">#111827</Color>
+        <Color x:Key="Color.InkMuted">#4B5563</Color>
+        <Color x:Key="Color.InkFaint">#9CA3AF</Color>
+        <Color x:Key="Color.Line">#E5E7EB</Color>
+        <Color x:Key="Color.LineStrong">#D1D5DB</Color>
+        <Color x:Key="Color.Surface">#FFFFFF</Color>
+        <Color x:Key="Color.Canvas">#F3F4F6</Color>
+        <Color x:Key="Color.Sidebar">#FFFFFF</Color>
+        <Color x:Key="Color.SidebarInk">#374151</Color>
+        <Color x:Key="Color.Danger">#DC2626</Color>
+        <Color x:Key="Color.Success">#059669</Color>
+        <Color x:Key="Color.Warning">#D97706</Color>
 
-        <!-- Lumina design tokens (aligned to Figma: green primary, orange brand, light chrome) -->
+        <SolidColorBrush x:Key="Brush.Brand" Color="{StaticResource Color.Brand}" />
+        <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource Color.Primary}" />
+        <SolidColorBrush x:Key="Brush.PrimaryHover" Color="{StaticResource Color.PrimaryHover}" />
+        <SolidColorBrush x:Key="Brush.PrimarySoft" Color="{StaticResource Color.PrimarySoft}" />
+        <SolidColorBrush x:Key="Brush.Ink" Color="{StaticResource Color.Ink}" />
+        <SolidColorBrush x:Key="Brush.InkMuted" Color="{StaticResource Color.InkMuted}" />
+        <SolidColorBrush x:Key="Brush.InkFaint" Color="{StaticResource Color.InkFaint}" />
+        <SolidColorBrush x:Key="Brush.Line" Color="{StaticResource Color.Line}" />
+        <SolidColorBrush x:Key="Brush.LineStrong" Color="{StaticResource Color.LineStrong}" />
+        <SolidColorBrush x:Key="Brush.Surface" Color="{StaticResource Color.Surface}" />
+        <SolidColorBrush x:Key="Brush.Canvas" Color="{StaticResource Color.Canvas}" />
+        <SolidColorBrush x:Key="Brush.Danger" Color="{StaticResource Color.Danger}" />
+        <SolidColorBrush x:Key="Brush.Success" Color="{StaticResource Color.Success}" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme DensityStyle="Compact" />
+
         <Style Selector="Window">
-            <Setter Property="Background" Value="#F4F6F8" />
-            <Setter Property="FontFamily" Value="Segoe UI, Inter, sans-serif" />
+            <Setter Property="Background" Value="{StaticResource Brush.Canvas}" />
+            <Setter Property="FontFamily" Value="Segoe UI Variable, Segoe UI, system-ui, sans-serif" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
 
+        <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
+        </Style>
+
+        <!-- Cards -->
+        <Style Selector="Border.card">
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="10" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+
+        <!-- Primary CTA -->
         <Style Selector="Button.primary">
-            <Setter Property="Background" Value="#1B7A4E" />
+            <Setter Property="Background" Value="{StaticResource Brush.Primary}" />
             <Setter Property="Foreground" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16,10" />
             <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#16653F" />
+            <Setter Property="Background" Value="{StaticResource Brush.PrimaryHover}" />
+        </Style>
+        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#0A442C" />
+        </Style>
+        <Style Selector="Button.primary:disabled /template/ ContentPresenter">
+            <Setter Property="Background" Value="#9CA3AF" />
+            <Setter Property="Opacity" Value="0.7" />
         </Style>
 
+        <!-- Secondary / ghost -->
+        <Style Selector="Button.secondary">
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.LineStrong}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F9FAFB" />
+        </Style>
+
+        <!-- Sidebar nav -->
         <Style Selector="Button.nav">
             <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#3D4A5C" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.InkMuted}" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
             <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="Padding" Value="14,11" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Margin" Value="8,1" />
+            <Setter Property="Padding" Value="12,10" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="Margin" Value="10,1" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#EEF2F6" />
+            <Setter Property="Background" Value="#F3F4F6" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
         <Style Selector="Button.nav.active">
-            <Setter Property="Background" Value="#E8F5EE" />
-            <Setter Property="Foreground" Value="#1B7A4E" />
+            <Setter Property="Background" Value="{StaticResource Brush.PrimarySoft}" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Primary}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-
-        <Style Selector="Button.ghost">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderBrush" Value="#D0D7DE" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="Padding" Value="12,8" />
+        <Style Selector="Button.nav.active:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="{StaticResource Brush.PrimarySoft}" />
         </Style>
 
+        <!-- Keypad keys -->
+        <Style Selector="Button.key">
+            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="FontSize" Value="16" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="3" />
+            <Setter Property="Height" Value="46" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.key:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F3F4F6" />
+        </Style>
+        <Style Selector="Button.key:pressed /template/ ContentPresenter">
+            <Setter Property="Background" Value="#E5E7EB" />
+        </Style>
+
+        <!-- Toolbar F-keys -->
+        <Style Selector="Button.fkey">
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.InkMuted}" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="6" />
+            <Setter Property="Padding" Value="12,7" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Margin" Value="0,0,6,0" />
+            <Setter Property="Cursor" Value="Hand" />
+        </Style>
+        <Style Selector="Button.fkey:pointerover /template/ ContentPresenter">
+            <Setter Property="Background" Value="#F9FAFB" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
+        </Style>
+
+        <!-- Inputs -->
         <Style Selector="TextBox.field">
             <Setter Property="Padding" Value="12,10" />
-            <Setter Property="CornerRadius" Value="6" />
-            <Setter Property="BorderBrush" Value="#D0D7DE" />
-            <Setter Property="Background" Value="White" />
+            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.LineStrong}" />
+            <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
+            <Setter Property="FontSize" Value="13" />
+        </Style>
+        <Style Selector="TextBox.field:focus">
+            <Setter Property="BorderBrush" Value="{StaticResource Brush.Primary}" />
         </Style>
 
-        <Style Selector="Border.card">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="CornerRadius" Value="10" />
-            <Setter Property="BorderBrush" Value="#E6EBF0" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="16" />
+        <!-- Section labels -->
+        <Style Selector="TextBlock.section-title">
+            <Setter Property="FontSize" Value="20" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
+        </Style>
+        <Style Selector="TextBlock.caption">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{StaticResource Brush.InkMuted}" />
+        </Style>
+        <Style Selector="TextBlock.muted">
+            <Setter Property="Foreground" Value="{StaticResource Brush.InkFaint}" />
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+
+        <!-- Status pill -->
+        <Style Selector="Border.pill-ok">
+            <Setter Property="Background" Value="#ECFDF5" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="8,3" />
+        </Style>
+        <Style Selector="Border.pill-warn">
+            <Setter Property="Background" Value="#FFFBEB" />
+            <Setter Property="CornerRadius" Value="999" />
+            <Setter Property="Padding" Value="8,3" />
         </Style>
     </Application.Styles>
 </Application>

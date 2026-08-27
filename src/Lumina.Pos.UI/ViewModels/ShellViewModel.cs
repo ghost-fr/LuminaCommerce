@@ -5,8 +5,7 @@ using Lumina.Contracts.Auth;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Capability-gated main shell matching Figma nav structure.
-/// Section visibility uses <see cref="IUserSession.HasCapability"/> only.
+/// Capability-gated main shell. Nav active state drives CSS-like .active styles in XAML.
 /// </summary>
 public partial class ShellViewModel : ObservableObject
 {
@@ -24,6 +23,8 @@ public partial class ShellViewModel : ObservableObject
 
     public string DisplayName => Session.DisplayName;
     public string Username => Session.Username;
+    public string UserInitial =>
+        string.IsNullOrWhiteSpace(DisplayName) ? "?" : DisplayName.Trim()[0].ToString().ToUpperInvariant();
 
     public bool CanOperatePos => Session.HasCapability(CapPosOperateRegister);
     public bool CanViewReports => Session.HasCapability(CapAdminViewReports);
@@ -32,17 +33,42 @@ public partial class ShellViewModel : ObservableObject
     public bool CanManageFiscal => Session.HasCapability(CapFiscalManageVeriFactu);
     public bool CanManageUsers => Session.HasCapability(CapAdminManageUsers);
 
-    /// <summary>inicio | tpv | ventas | clientes | articulos | stock | informes | verifactu | caja | config | usuarios | ayuda</summary>
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInicio))]
     [NotifyPropertyChangedFor(nameof(IsTpv))]
     [NotifyPropertyChangedFor(nameof(IsPlaceholder))]
     [NotifyPropertyChangedFor(nameof(PlaceholderTitle))]
+    [NotifyPropertyChangedFor(nameof(PlaceholderHint))]
+    [NotifyPropertyChangedFor(nameof(IsNavInicio))]
+    [NotifyPropertyChangedFor(nameof(IsNavTpv))]
+    [NotifyPropertyChangedFor(nameof(IsNavVentas))]
+    [NotifyPropertyChangedFor(nameof(IsNavClientes))]
+    [NotifyPropertyChangedFor(nameof(IsNavArticulos))]
+    [NotifyPropertyChangedFor(nameof(IsNavStock))]
+    [NotifyPropertyChangedFor(nameof(IsNavInformes))]
+    [NotifyPropertyChangedFor(nameof(IsNavVerifactu))]
+    [NotifyPropertyChangedFor(nameof(IsNavCaja))]
+    [NotifyPropertyChangedFor(nameof(IsNavConfig))]
+    [NotifyPropertyChangedFor(nameof(IsNavUsuarios))]
+    [NotifyPropertyChangedFor(nameof(IsNavAyuda))]
     private string _currentSection = "inicio";
 
     public bool IsInicio => CurrentSection == "inicio";
     public bool IsTpv => CurrentSection == "tpv";
     public bool IsPlaceholder => !IsInicio && !IsTpv;
+
+    public bool IsNavInicio => CurrentSection == "inicio";
+    public bool IsNavTpv => CurrentSection == "tpv";
+    public bool IsNavVentas => CurrentSection == "ventas";
+    public bool IsNavClientes => CurrentSection == "clientes";
+    public bool IsNavArticulos => CurrentSection == "articulos";
+    public bool IsNavStock => CurrentSection == "stock";
+    public bool IsNavInformes => CurrentSection == "informes";
+    public bool IsNavVerifactu => CurrentSection == "verifactu";
+    public bool IsNavCaja => CurrentSection == "caja";
+    public bool IsNavConfig => CurrentSection == "config";
+    public bool IsNavUsuarios => CurrentSection == "usuarios";
+    public bool IsNavAyuda => CurrentSection == "ayuda";
 
     public string PlaceholderTitle => CurrentSection switch
     {
@@ -59,8 +85,20 @@ public partial class ShellViewModel : ObservableObject
         _ => CurrentSection
     };
 
-    [ObservableProperty]
-    private string _statusMessage = "Listo";
+    public string PlaceholderHint => CurrentSection switch
+    {
+        "clientes" => "Gestión de clientes, saldos y búsqueda por NIF — siguiente hito UI.",
+        "articulos" => "Catálogo, familias y precios — conecta IProductCatalogueService en el siguiente hito.",
+        "stock" => "Ajustes e inventario — Phase 4 del backend.",
+        "informes" => "Informes y cuadros de mando — Phase 7.",
+        "verifactu" => "Dashboard fiscal, histórico de registros y envío AEAT.",
+        "caja" => "Apertura, arqueo y cierre de caja.",
+        "ventas" => "Histórico de tickets y ventas del día.",
+        "config" => "Preferencias de tienda, impresoras y VeriFactu.",
+        "usuarios" => "Roles, capacidades y usuarios del tenant.",
+        "ayuda" => "Atajos de teclado y documentación de operador.",
+        _ => "Módulo en construcción."
+    };
 
     public ShellViewModel(IAuthService auth, Action onLoggedOut)
     {
@@ -75,7 +113,6 @@ public partial class ShellViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(section)) return;
 
-        // Capability gates for restricted sections
         if (section is "tpv" or "caja" && !CanOperatePos) return;
         if (section is "articulos" && !CanManageCatalogue) return;
         if (section is "stock" && !CanAdjustStock) return;
@@ -84,12 +121,6 @@ public partial class ShellViewModel : ObservableObject
         if (section is "usuarios" or "config" && !CanManageUsers) return;
 
         CurrentSection = section;
-        StatusMessage = section switch
-        {
-            "inicio" => "Panel de inicio",
-            "tpv" => "TPV — pantalla de venta",
-            _ => $"{PlaceholderTitle} — próximamente"
-        };
     }
 
     [RelayCommand]
