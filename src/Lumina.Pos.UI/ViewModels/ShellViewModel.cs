@@ -5,7 +5,8 @@ using Lumina.Contracts.Auth;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Capability-gated main shell. Nav active state drives CSS-like .active styles in XAML.
+/// Capability-gated shell. Each module has a dedicated ViewModel with mock data
+/// until backend read models / contracts are available.
 /// </summary>
 public partial class ShellViewModel : ObservableObject
 {
@@ -33,18 +34,40 @@ public partial class ShellViewModel : ObservableObject
     public bool CanManageFiscal => Session.HasCapability(CapFiscalManageVeriFactu);
     public bool CanManageUsers => Session.HasCapability(CapAdminManageUsers);
 
+    // Module VMs (created once per session)
+    public PosModuleViewModel Pos { get; } = new();
+    public ProductsModuleViewModel Products { get; } = new();
+    public CustomersModuleViewModel Customers { get; } = new();
+    public SalesModuleViewModel Sales { get; } = new();
+    public StockModuleViewModel Stock { get; } = new();
+    public PurchasesModuleViewModel Purchases { get; } = new();
+    public CashModuleViewModel Cash { get; } = new();
+    public ReportsModuleViewModel Reports { get; } = new();
+    public UsersModuleViewModel Users { get; } = new();
+    public SettingsModuleViewModel Settings { get; } = new();
+    public VeriFactuModuleViewModel VeriFactu { get; } = new();
+
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsInicio))]
     [NotifyPropertyChangedFor(nameof(IsTpv))]
-    [NotifyPropertyChangedFor(nameof(IsPlaceholder))]
-    [NotifyPropertyChangedFor(nameof(PlaceholderTitle))]
-    [NotifyPropertyChangedFor(nameof(PlaceholderHint))]
+    [NotifyPropertyChangedFor(nameof(IsVentas))]
+    [NotifyPropertyChangedFor(nameof(IsClientes))]
+    [NotifyPropertyChangedFor(nameof(IsArticulos))]
+    [NotifyPropertyChangedFor(nameof(IsStock))]
+    [NotifyPropertyChangedFor(nameof(IsCompras))]
+    [NotifyPropertyChangedFor(nameof(IsCaja))]
+    [NotifyPropertyChangedFor(nameof(IsInformes))]
+    [NotifyPropertyChangedFor(nameof(IsUsuarios))]
+    [NotifyPropertyChangedFor(nameof(IsConfig))]
+    [NotifyPropertyChangedFor(nameof(IsVerifactu))]
+    [NotifyPropertyChangedFor(nameof(IsAyuda))]
     [NotifyPropertyChangedFor(nameof(IsNavInicio))]
     [NotifyPropertyChangedFor(nameof(IsNavTpv))]
     [NotifyPropertyChangedFor(nameof(IsNavVentas))]
     [NotifyPropertyChangedFor(nameof(IsNavClientes))]
     [NotifyPropertyChangedFor(nameof(IsNavArticulos))]
     [NotifyPropertyChangedFor(nameof(IsNavStock))]
+    [NotifyPropertyChangedFor(nameof(IsNavCompras))]
     [NotifyPropertyChangedFor(nameof(IsNavInformes))]
     [NotifyPropertyChangedFor(nameof(IsNavVerifactu))]
     [NotifyPropertyChangedFor(nameof(IsNavCaja))]
@@ -55,50 +78,31 @@ public partial class ShellViewModel : ObservableObject
 
     public bool IsInicio => CurrentSection == "inicio";
     public bool IsTpv => CurrentSection == "tpv";
-    public bool IsPlaceholder => !IsInicio && !IsTpv;
+    public bool IsVentas => CurrentSection == "ventas";
+    public bool IsClientes => CurrentSection == "clientes";
+    public bool IsArticulos => CurrentSection == "articulos";
+    public bool IsStock => CurrentSection == "stock";
+    public bool IsCompras => CurrentSection == "compras";
+    public bool IsCaja => CurrentSection == "caja";
+    public bool IsInformes => CurrentSection == "informes";
+    public bool IsUsuarios => CurrentSection == "usuarios";
+    public bool IsConfig => CurrentSection == "config";
+    public bool IsVerifactu => CurrentSection == "verifactu";
+    public bool IsAyuda => CurrentSection == "ayuda";
 
-    public bool IsNavInicio => CurrentSection == "inicio";
-    public bool IsNavTpv => CurrentSection == "tpv";
-    public bool IsNavVentas => CurrentSection == "ventas";
-    public bool IsNavClientes => CurrentSection == "clientes";
-    public bool IsNavArticulos => CurrentSection == "articulos";
-    public bool IsNavStock => CurrentSection == "stock";
-    public bool IsNavInformes => CurrentSection == "informes";
-    public bool IsNavVerifactu => CurrentSection == "verifactu";
-    public bool IsNavCaja => CurrentSection == "caja";
-    public bool IsNavConfig => CurrentSection == "config";
-    public bool IsNavUsuarios => CurrentSection == "usuarios";
-    public bool IsNavAyuda => CurrentSection == "ayuda";
-
-    public string PlaceholderTitle => CurrentSection switch
-    {
-        "ventas" => "Ventas",
-        "clientes" => "Clientes",
-        "articulos" => "Artículos",
-        "stock" => "Stock",
-        "informes" => "Informes",
-        "verifactu" => "VeriFactu",
-        "caja" => "Caja",
-        "config" => "Configuración",
-        "usuarios" => "Usuarios",
-        "ayuda" => "Ayuda",
-        _ => CurrentSection
-    };
-
-    public string PlaceholderHint => CurrentSection switch
-    {
-        "clientes" => "Gestión de clientes, saldos y búsqueda por NIF — siguiente hito UI.",
-        "articulos" => "Catálogo, familias y precios — conecta IProductCatalogueService en el siguiente hito.",
-        "stock" => "Ajustes e inventario — Phase 4 del backend.",
-        "informes" => "Informes y cuadros de mando — Phase 7.",
-        "verifactu" => "Dashboard fiscal, histórico de registros y envío AEAT.",
-        "caja" => "Apertura, arqueo y cierre de caja.",
-        "ventas" => "Histórico de tickets y ventas del día.",
-        "config" => "Preferencias de tienda, impresoras y VeriFactu.",
-        "usuarios" => "Roles, capacidades y usuarios del tenant.",
-        "ayuda" => "Atajos de teclado y documentación de operador.",
-        _ => "Módulo en construcción."
-    };
+    public bool IsNavInicio => IsInicio;
+    public bool IsNavTpv => IsTpv;
+    public bool IsNavVentas => IsVentas;
+    public bool IsNavClientes => IsClientes;
+    public bool IsNavArticulos => IsArticulos;
+    public bool IsNavStock => IsStock;
+    public bool IsNavCompras => IsCompras;
+    public bool IsNavInformes => IsInformes;
+    public bool IsNavVerifactu => IsVerifactu;
+    public bool IsNavCaja => IsCaja;
+    public bool IsNavConfig => IsConfig;
+    public bool IsNavUsuarios => IsUsuarios;
+    public bool IsNavAyuda => IsAyuda;
 
     public ShellViewModel(IAuthService auth, Action onLoggedOut)
     {
@@ -115,10 +119,13 @@ public partial class ShellViewModel : ObservableObject
 
         if (section is "tpv" or "caja" && !CanOperatePos) return;
         if (section is "articulos" && !CanManageCatalogue) return;
-        if (section is "stock" && !CanAdjustStock) return;
+        if (section is "stock" or "compras" && !CanAdjustStock && section == "stock") return;
         if (section is "informes" or "ventas" && !CanViewReports) return;
         if (section is "verifactu" && !CanManageFiscal) return;
         if (section is "usuarios" or "config" && !CanManageUsers) return;
+
+        // stock: allow if adjust OR reports (view levels)
+        if (section == "stock" && !CanAdjustStock && !CanViewReports) return;
 
         CurrentSection = section;
     }
