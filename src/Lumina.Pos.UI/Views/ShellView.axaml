@@ -2,93 +2,357 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
              x:Class="Lumina.Pos.UI.Views.ShellView"
-             x:DataType="vm:ShellViewModel">
+             x:DataType="vm:ShellViewModel"
+             Background="#F4F6F8">
     <DockPanel>
-        <!-- Top bar -->
-        <Border DockPanel.Dock="Top"
-                Padding="16,10"
-                Background="{DynamicResource SystemControlBackgroundChromeMediumBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
-                BorderThickness="0,0,0,1">
-            <Grid ColumnDefinitions="*,Auto">
-                <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                    <TextBlock Text="Lumina POS" FontWeight="SemiBold" FontSize="16" VerticalAlignment="Center" />
-                    <TextBlock Text="—" Opacity="0.4" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding DisplayName}" VerticalAlignment="Center" />
-                    <TextBlock Text="(" Opacity="0.5" VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding Username}" Opacity="0.5" VerticalAlignment="Center" />
-                    <TextBlock Text=")" Opacity="0.5" VerticalAlignment="Center" />
-                </StackPanel>
-                <Button Grid.Column="1"
-                        Content="Sign out"
-                        Command="{Binding LogoutCommand}"
-                        Padding="12,6" />
-            </Grid>
-        </Border>
 
-        <!-- Left nav — capability-gated -->
+        <!-- ===== LEFT SIDEBAR (Figma) ===== -->
         <Border DockPanel.Dock="Left"
                 Width="200"
-                Padding="8"
-                Background="{DynamicResource SystemControlBackgroundChromeLowBrush}"
-                BorderBrush="{DynamicResource SystemControlForegroundBaseMediumBrush}"
+                Background="White"
+                BorderBrush="#E6EBF0"
                 BorderThickness="0,0,1,0">
-            <StackPanel Spacing="4">
-                <TextBlock Text="NAVIGATION"
-                           FontSize="11"
-                           FontWeight="SemiBold"
-                           Opacity="0.5"
-                           Margin="8,8,8,4" />
+            <DockPanel>
+                <!-- Logo -->
+                <Border DockPanel.Dock="Top" Background="#1A1A1A" Padding="14,16">
+                    <StackPanel Orientation="Horizontal" Spacing="10">
+                        <Border Background="#F5A623" CornerRadius="6" Width="36" Height="36">
+                            <TextBlock Text="L" FontSize="18" FontWeight="Bold" Foreground="#1A1A1A"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <StackPanel VerticalAlignment="Center">
+                            <TextBlock Text="Lumina" FontSize="15" FontWeight="Bold" Foreground="White" />
+                            <TextBlock Text="Commerce" FontSize="10" Foreground="#AAAAAA" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
 
-                <Button Content="POS / Cart"
-                        Command="{Binding OpenPosCommand}"
-                        IsVisible="{Binding CanOperatePos}"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,10" />
+                <!-- Cerrar sesión -->
+                <Border DockPanel.Dock="Bottom" Padding="8,12" BorderBrush="#E6EBF0" BorderThickness="0,1,0,0">
+                    <Button Classes="nav" Command="{Binding LogoutCommand}">
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                            <TextBlock Text="⏻" FontSize="14" VerticalAlignment="Center" />
+                            <TextBlock Text="Cerrar sesión" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Border>
 
-                <Button Content="Catalogue"
-                        Command="{Binding OpenCatalogueCommand}"
-                        IsVisible="{Binding CanManageCatalogue}"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,10" />
+                <!-- Nav items -->
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Margin="0,8,0,0">
+                    <StackPanel>
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="inicio">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⌂" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Inicio" />
+                            </StackPanel>
+                        </Button>
 
-                <Button Content="Stock"
-                        Command="{Binding OpenStockCommand}"
-                        IsVisible="{Binding CanAdjustStock}"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,10" />
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="tpv"
+                                IsVisible="{Binding CanOperatePos}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▣" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="TPV" />
+                            </StackPanel>
+                        </Button>
 
-                <Button Content="Reports"
-                        Command="{Binding OpenReportsCommand}"
-                        IsVisible="{Binding CanViewReports}"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,10" />
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="ventas"
+                                IsVisible="{Binding CanViewReports}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="↗" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Ventas" />
+                            </StackPanel>
+                        </Button>
 
-                <Button Content="VeriFactu"
-                        Command="{Binding OpenFiscalCommand}"
-                        IsVisible="{Binding CanManageFiscal}"
-                        HorizontalAlignment="Stretch"
-                        HorizontalContentAlignment="Left"
-                        Padding="12,10" />
-            </StackPanel>
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="clientes">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="👤" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Clientes" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="articulos"
+                                IsVisible="{Binding CanManageCatalogue}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▦" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Artículos" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="stock"
+                                IsVisible="{Binding CanAdjustStock}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="▤" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Stock" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="informes"
+                                IsVisible="{Binding CanViewReports}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="📊" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Informes" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="verifactu"
+                                IsVisible="{Binding CanManageFiscal}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="✓" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="VeriFactu" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="caja"
+                                IsVisible="{Binding CanOperatePos}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="€" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Caja" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="config"
+                                IsVisible="{Binding CanManageUsers}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="⚙" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Configuración" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="usuarios"
+                                IsVisible="{Binding CanManageUsers}">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="👥" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Usuarios" />
+                            </StackPanel>
+                        </Button>
+
+                        <Button Classes="nav" Command="{Binding NavigateCommand}" CommandParameter="ayuda">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <TextBlock Text="?" Width="18" TextAlignment="Center" />
+                                <TextBlock Text="Ayuda" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
         </Border>
 
-        <!-- Content area -->
-        <Grid Margin="24">
-            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
-                <TextBlock Text="Welcome"
-                           FontSize="22"
-                           FontWeight="SemiBold"
-                           HorizontalAlignment="Center" />
-                <TextBlock Text="{Binding StatusMessage}"
-                           Opacity="0.7"
-                           HorizontalAlignment="Center"
-                           TextWrapping="Wrap" />
-            </StackPanel>
+        <!-- ===== MAIN CONTENT ===== -->
+        <Grid>
+
+            <!-- INICIO dashboard -->
+            <ScrollViewer IsVisible="{Binding IsInicio}" Padding="20">
+                <StackPanel Spacing="16">
+                    <TextBlock Text="Inicio" FontSize="22" FontWeight="SemiBold" Foreground="#1A1A1A" />
+
+                    <!-- KPI row -->
+                    <UniformGrid Columns="4" Margin="0,4,0,0">
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Ventas hoy" FontSize="12" Foreground="#6B7280" />
+                                <TextBlock Text="—" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <TextBlock Text="Conectar datos en Fase 7" FontSize="11" Foreground="#9CA3AF" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Tickets hoy" FontSize="12" Foreground="#6B7280" />
+                                <TextBlock Text="—" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <TextBlock Text="Conectar datos en Fase 7" FontSize="11" Foreground="#9CA3AF" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card" Margin="0,0,12,0">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Ticket medio" FontSize="12" Foreground="#6B7280" />
+                                <TextBlock Text="—" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <TextBlock Text="Conectar datos en Fase 7" FontSize="11" Foreground="#9CA3AF" />
+                            </StackPanel>
+                        </Border>
+                        <Border Classes="card">
+                            <StackPanel Spacing="4">
+                                <TextBlock Text="Clientes hoy" FontSize="12" Foreground="#6B7280" />
+                                <TextBlock Text="—" FontSize="24" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <TextBlock Text="Conectar datos en Fase 7" FontSize="11" Foreground="#9CA3AF" />
+                            </StackPanel>
+                        </Border>
+                    </UniformGrid>
+
+                    <Grid ColumnDefinitions="2*,*" Margin="0,8,0,0">
+                        <!-- Chart placeholder -->
+                        <Border Classes="card" Margin="0,0,12,0" MinHeight="220">
+                            <StackPanel Spacing="8">
+                                <TextBlock Text="Gráfico de ventas (Hoy)" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <Border Background="#F8FAFB" CornerRadius="8" Height="160" Margin="0,8,0,0">
+                                    <TextBlock Text="Los datos de reporting llegarán en Fase 7"
+                                               Foreground="#9CA3AF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System status -->
+                        <Border Classes="card" MinHeight="220">
+                            <StackPanel Spacing="10">
+                                <TextBlock Text="Estado del sistema" FontWeight="SemiBold" Foreground="#1A1A1A" />
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Ellipse Width="8" Height="8" Fill="#1B7A4E" VerticalAlignment="Center" />
+                                    <TextBlock Text="VeriFactu" VerticalAlignment="Center" />
+                                    <TextBlock Text="Activo" Foreground="#1B7A4E" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Ellipse Width="8" Height="8" Fill="#1B7A4E" VerticalAlignment="Center" />
+                                    <TextBlock Text="Conexión AEAT" VerticalAlignment="Center" />
+                                    <TextBlock Text="—" Foreground="#6B7280" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <Ellipse Width="8" Height="8" Fill="#F5A623" VerticalAlignment="Center" />
+                                    <TextBlock Text="Último envío" VerticalAlignment="Center" />
+                                    <TextBlock Text="—" Foreground="#6B7280" VerticalAlignment="Center" />
+                                </StackPanel>
+                                <TextBlock Text="Usuario" FontSize="12" Foreground="#6B7280" Margin="0,8,0,0" />
+                                <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding Username}" FontSize="12" Foreground="#6B7280" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+
+                    <!-- Quick access -->
+                    <Border Classes="card" Margin="0,4,0,0">
+                        <StackPanel Spacing="10">
+                            <TextBlock Text="Accesos rápidos" FontWeight="SemiBold" />
+                            <WrapPanel>
+                                <Button Classes="ghost" Margin="0,0,8,8" Content="Nueva venta (F2)"
+                                        Command="{Binding NavigateCommand}" CommandParameter="tpv"
+                                        IsVisible="{Binding CanOperatePos}" />
+                                <Button Classes="ghost" Margin="0,0,8,8" Content="Buscar artículo (F4)"
+                                        Command="{Binding NavigateCommand}" CommandParameter="articulos"
+                                        IsVisible="{Binding CanManageCatalogue}" />
+                                <Button Classes="ghost" Margin="0,0,8,8" Content="Clientes (F3)"
+                                        Command="{Binding NavigateCommand}" CommandParameter="clientes" />
+                                <Button Classes="ghost" Margin="0,0,8,8" Content="Cierre de caja (F12)"
+                                        Command="{Binding NavigateCommand}" CommandParameter="caja"
+                                        IsVisible="{Binding CanOperatePos}" />
+                                <Button Classes="ghost" Margin="0,0,8,8" Content="VeriFactu Dashboard"
+                                        Command="{Binding NavigateCommand}" CommandParameter="verifactu"
+                                        IsVisible="{Binding CanManageFiscal}" />
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <!-- TPV layout (structure from Figma — cart wiring is next milestone) -->
+            <Grid IsVisible="{Binding IsTpv}" RowDefinitions="Auto,*,Auto" Margin="12">
+                <!-- Top context bar -->
+                <Border Grid.Row="0" Classes="card" Padding="12,10" Margin="0,0,0,10">
+                    <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto">
+                        <StackPanel Orientation="Horizontal" Spacing="6" Margin="0,0,16,0">
+                            <TextBlock Text="Tienda" Foreground="#6B7280" VerticalAlignment="Center" FontSize="12" />
+                            <Border Background="#F4F6F8" CornerRadius="4" Padding="8,4">
+                                <TextBlock Text="001" FontWeight="SemiBold" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0">
+                            <TextBlock Text="Caja" Foreground="#6B7280" VerticalAlignment="Center" FontSize="12" />
+                            <Border Background="#F4F6F8" CornerRadius="4" Padding="8,4">
+                                <TextBlock Text="01" FontWeight="SemiBold" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" Margin="0,0,16,0">
+                            <TextBlock Text="Empleado" Foreground="#6B7280" VerticalAlignment="Center" FontSize="12" />
+                            <TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                        <TextBox Grid.Column="4" Classes="field" Watermark="Buscar cliente…" Margin="0,0,12,0" />
+                        <TextBlock Grid.Column="5" Text="Tarifa" Foreground="#6B7280" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <Border Grid.Column="6" Background="#F4F6F8" CornerRadius="4" Padding="10,6">
+                            <TextBlock Text="General" FontWeight="SemiBold" />
+                        </Border>
+                    </Grid>
+                </Border>
+
+                <Grid Grid.Row="1" ColumnDefinitions="*,280">
+                    <!-- Cart table -->
+                    <Border Classes="card" Margin="0,0,10,0" Padding="0">
+                        <DockPanel>
+                            <Grid DockPanel.Dock="Top" ColumnDefinitions="80,*,70,70,60,80"
+                                  Background="#F8FAFB" Margin="0">
+                                <TextBlock Text="Código" Margin="12,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                                <TextBlock Grid.Column="1" Text="Descripción" Margin="8,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                                <TextBlock Grid.Column="2" Text="Cant." Margin="4,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                                <TextBlock Grid.Column="3" Text="Precio" Margin="4,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                                <TextBlock Grid.Column="4" Text="Dto." Margin="4,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                                <TextBlock Grid.Column="5" Text="Total" Margin="4,10,12,10" FontSize="12" FontWeight="SemiBold" Foreground="#6B7280" />
+                            </Grid>
+                            <Border Background="White">
+                                <TextBlock Text="Escanea un código de barras o busca un artículo (F4).&#x0a;La lógica de carrito se conecta en el siguiente hito UI."
+                                           TextAlignment="Center" VerticalAlignment="Center"
+                                           Foreground="#9CA3AF" TextWrapping="Wrap" Margin="24" />
+                            </Border>
+                        </DockPanel>
+                    </Border>
+
+                    <!-- Right: total + keypad -->
+                    <DockPanel Grid.Column="1">
+                        <Border DockPanel.Dock="Top" Classes="card" Margin="0,0,0,10" Padding="16">
+                            <StackPanel>
+                                <TextBlock Text="Total" FontSize="13" Foreground="#6B7280" />
+                                <TextBlock Text="0,00 €" FontSize="36" FontWeight="Bold" Foreground="#1B7A4E" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Classes="card" Padding="12">
+                            <StackPanel Spacing="8">
+                                <TextBox Classes="field" Watermark="Introducir código de barras" />
+                                <UniformGrid Columns="3" Rows="5">
+                                    <Button Content="7" Margin="3" Height="44" />
+                                    <Button Content="8" Margin="3" Height="44" />
+                                    <Button Content="9" Margin="3" Height="44" />
+                                    <Button Content="4" Margin="3" Height="44" />
+                                    <Button Content="5" Margin="3" Height="44" />
+                                    <Button Content="6" Margin="3" Height="44" />
+                                    <Button Content="1" Margin="3" Height="44" />
+                                    <Button Content="2" Margin="3" Height="44" />
+                                    <Button Content="3" Margin="3" Height="44" />
+                                    <Button Content="0" Margin="3" Height="44" />
+                                    <Button Content="," Margin="3" Height="44" />
+                                    <Button Content="C" Margin="3" Height="44" />
+                                </UniformGrid>
+                                <Grid ColumnDefinitions="*,*">
+                                    <Button Content="Teclado" Margin="0,0,4,0" Height="40" />
+                                    <Button Grid.Column="1" Content="Funciones" Margin="4,0,0,0" Height="40" />
+                                </Grid>
+                                <Button Classes="primary" Content="Intro" Height="48" HorizontalAlignment="Stretch"
+                                        HorizontalContentAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </DockPanel>
+                </Grid>
+
+                <!-- Bottom F-key bar -->
+                <Border Grid.Row="2" Classes="card" Margin="0,10,0,0" Padding="10,8">
+                    <WrapPanel>
+                        <Button Classes="ghost" Content="F2 Ticket" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F3 Consulta" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F4 Cuadre" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F5 Ticket Rápido" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F6 Aparcar" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F7 Recuperar" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="F8 Otros" Margin="0,0,6,0" Padding="10,6" />
+                        <Button Classes="ghost" Content="Esc Salir" Margin="0,0,6,0" Padding="10,6"
+                                Command="{Binding NavigateCommand}" CommandParameter="inicio" />
+                    </WrapPanel>
+                </Border>
+            </Grid>
+
+            <!-- Placeholder for other sections -->
+            <Grid IsVisible="{Binding IsPlaceholder}">
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="8">
+                    <TextBlock Text="{Binding PlaceholderTitle}" FontSize="22" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Foreground="#1A1A1A" />
+                    <TextBlock Text="{Binding StatusMessage}" HorizontalAlignment="Center" Foreground="#6B7280" />
+                    <TextBlock Text="Pantalla completa según Figma en siguientes hitos."
+                               HorizontalAlignment="Center" Foreground="#9CA3AF" FontSize="12" Margin="0,8,0,0" />
+                </StackPanel>
+            </Grid>
         </Grid>
     </DockPanel>
 </UserControl>
