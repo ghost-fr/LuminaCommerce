@@ -3,9 +3,7 @@
              x:Class="Lumina.Pos.UI.App"
              RequestedThemeVariant="Light">
     <Application.Resources>
-        <!-- Design tokens — single source of visual truth -->
         <Color x:Key="Color.Brand">#E8A317</Color>
-        <Color x:Key="Color.BrandDark">#C48A0F</Color>
         <Color x:Key="Color.Primary">#0F6B45</Color>
         <Color x:Key="Color.PrimaryHover">#0C5537</Color>
         <Color x:Key="Color.PrimarySoft">#E6F4ED</Color>
@@ -16,11 +14,8 @@
         <Color x:Key="Color.LineStrong">#D1D5DB</Color>
         <Color x:Key="Color.Surface">#FFFFFF</Color>
         <Color x:Key="Color.Canvas">#F3F4F6</Color>
-        <Color x:Key="Color.Sidebar">#FFFFFF</Color>
-        <Color x:Key="Color.SidebarInk">#374151</Color>
         <Color x:Key="Color.Danger">#DC2626</Color>
         <Color x:Key="Color.Success">#059669</Color>
-        <Color x:Key="Color.Warning">#D97706</Color>
 
         <SolidColorBrush x:Key="Brush.Brand" Color="{StaticResource Color.Brand}" />
         <SolidColorBrush x:Key="Brush.Primary" Color="{StaticResource Color.Primary}" />
@@ -39,6 +34,7 @@
 
     <Application.Styles>
         <FluentTheme DensityStyle="Compact" />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
 
         <Style Selector="Window">
             <Setter Property="Background" Value="{StaticResource Brush.Canvas}" />
@@ -47,11 +43,6 @@
             <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
 
-        <Style Selector="TextBlock">
-            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
-        </Style>
-
-        <!-- Cards -->
         <Style Selector="Border.card">
             <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
             <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
@@ -60,7 +51,6 @@
             <Setter Property="Padding" Value="16" />
         </Style>
 
-        <!-- Primary CTA -->
         <Style Selector="Button.primary">
             <Setter Property="Background" Value="{StaticResource Brush.Primary}" />
             <Setter Property="Foreground" Value="White" />
@@ -68,21 +58,12 @@
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="16,10" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="13" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.primary:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="{StaticResource Brush.PrimaryHover}" />
         </Style>
-        <Style Selector="Button.primary:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#0A442C" />
-        </Style>
-        <Style Selector="Button.primary:disabled /template/ ContentPresenter">
-            <Setter Property="Background" Value="#9CA3AF" />
-            <Setter Property="Opacity" Value="0.7" />
-        </Style>
 
-        <!-- Secondary / ghost -->
         <Style Selector="Button.secondary">
             <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
             <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
@@ -90,14 +71,9 @@
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Padding" Value="12,8" />
-            <Setter Property="FontSize" Value="13" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
-        <Style Selector="Button.secondary:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#F9FAFB" />
-        </Style>
 
-        <!-- Sidebar nav -->
         <Style Selector="Button.nav">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{StaticResource Brush.InkMuted}" />
@@ -107,26 +83,19 @@
             <Setter Property="Padding" Value="12,10" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="Margin" Value="10,1" />
-            <Setter Property="FontSize" Value="13" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
         <Style Selector="Button.nav:pointerover /template/ ContentPresenter">
             <Setter Property="Background" Value="#F3F4F6" />
-            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
         <Style Selector="Button.nav.active">
             <Setter Property="Background" Value="{StaticResource Brush.PrimarySoft}" />
             <Setter Property="Foreground" Value="{StaticResource Brush.Primary}" />
             <Setter Property="FontWeight" Value="SemiBold" />
         </Style>
-        <Style Selector="Button.nav.active:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="{StaticResource Brush.PrimarySoft}" />
-        </Style>
 
-        <!-- Keypad keys -->
         <Style Selector="Button.key">
             <Setter Property="Background" Value="#F9FAFB" />
-            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
             <Setter Property="BorderBrush" Value="{StaticResource Brush.Line}" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="CornerRadius" Value="8" />
@@ -136,14 +105,7 @@
             <Setter Property="Height" Value="46" />
             <Setter Property="Cursor" Value="Hand" />
         </Style>
-        <Style Selector="Button.key:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#F3F4F6" />
-        </Style>
-        <Style Selector="Button.key:pressed /template/ ContentPresenter">
-            <Setter Property="Background" Value="#E5E7EB" />
-        </Style>
 
-        <!-- Toolbar F-keys -->
         <Style Selector="Button.fkey">
             <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
             <Setter Property="Foreground" Value="{StaticResource Brush.InkMuted}" />
@@ -153,30 +115,18 @@
             <Setter Property="Padding" Value="12,7" />
             <Setter Property="FontSize" Value="12" />
             <Setter Property="Margin" Value="0,0,6,0" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-        <Style Selector="Button.fkey:pointerover /template/ ContentPresenter">
-            <Setter Property="Background" Value="#F9FAFB" />
-            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
 
-        <!-- Inputs -->
         <Style Selector="TextBox.field">
             <Setter Property="Padding" Value="12,10" />
             <Setter Property="CornerRadius" Value="8" />
             <Setter Property="BorderBrush" Value="{StaticResource Brush.LineStrong}" />
             <Setter Property="Background" Value="{StaticResource Brush.Surface}" />
-            <Setter Property="FontSize" Value="13" />
-        </Style>
-        <Style Selector="TextBox.field:focus">
-            <Setter Property="BorderBrush" Value="{StaticResource Brush.Primary}" />
         </Style>
 
-        <!-- Section labels -->
         <Style Selector="TextBlock.section-title">
             <Setter Property="FontSize" Value="20" />
             <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Foreground" Value="{StaticResource Brush.Ink}" />
         </Style>
         <Style Selector="TextBlock.caption">
             <Setter Property="FontSize" Value="12" />
@@ -187,14 +137,8 @@
             <Setter Property="FontSize" Value="12" />
         </Style>
 
-        <!-- Status pill -->
         <Style Selector="Border.pill-ok">
             <Setter Property="Background" Value="#ECFDF5" />
-            <Setter Property="CornerRadius" Value="999" />
-            <Setter Property="Padding" Value="8,3" />
-        </Style>
-        <Style Selector="Border.pill-warn">
-            <Setter Property="Background" Value="#FFFBEB" />
             <Setter Property="CornerRadius" Value="999" />
             <Setter Property="Padding" Value="8,3" />
         </Style>
