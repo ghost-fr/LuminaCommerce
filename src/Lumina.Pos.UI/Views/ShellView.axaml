@@ -2,11 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
              x:Class="Lumina.Pos.UI.Views.ShellView"
+             x:Name="Root"
              x:DataType="vm:ShellViewModel"
              Background="{StaticResource Brush.Canvas}">
   <DockPanel>
 
-    <!-- SIDEBAR -->
     <Border DockPanel.Dock="Left" Width="212" Background="{StaticResource Brush.Surface}"
             BorderBrush="{StaticResource Brush.Line}" BorderThickness="0,0,1,0">
       <DockPanel>
@@ -91,23 +91,46 @@
       </DockPanel>
     </Border>
 
-    <!-- ================= CONTENT ================= -->
     <Grid>
 
       <!-- INICIO -->
       <ScrollViewer IsVisible="{Binding IsInicio}" Padding="20,18">
-        <StackPanel Spacing="14" DataContext="{Binding Reports}">
+        <StackPanel Spacing="14">
           <TextBlock Text="Inicio" Classes="section-title" />
           <UniformGrid Columns="4">
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel Spacing="4"><TextBlock Text="Ventas hoy" Classes="caption"/><TextBlock Text="{Binding SalesTotal, StringFormat='{}{0:N2} €'}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Datos de demostración" Classes="muted"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel Spacing="4"><TextBlock Text="Tickets hoy" Classes="caption"/><TextBlock Text="{Binding TicketCount}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Datos de demostración" Classes="muted"/></StackPanel></Border>
-            <Border Classes="card" Margin="0,0,10,0"><StackPanel Spacing="4"><TextBlock Text="Ticket medio" Classes="caption"/><TextBlock Text="{Binding AvgTicket, StringFormat='{}{0:N2} €'}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Datos de demostración" Classes="muted"/></StackPanel></Border>
-            <Border Classes="card"><StackPanel Spacing="4"><TextBlock Text="Clientes hoy" Classes="caption"/><TextBlock Text="{Binding CustomerCount}" FontSize="24" FontWeight="SemiBold"/><TextBlock Text="Datos de demostración" Classes="muted"/></StackPanel></Border>
+            <Border Classes="card" Margin="0,0,10,0" DataContext="{Binding Reports}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Ventas hoy" Classes="caption"/>
+                <TextBlock Text="{Binding SalesTotal, StringFormat='{}{0:N2} €'}" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock Text="Datos de demostración" Classes="muted"/>
+              </StackPanel>
+            </Border>
+            <Border Classes="card" Margin="0,0,10,0" DataContext="{Binding Reports}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Tickets hoy" Classes="caption"/>
+                <TextBlock Text="{Binding TicketCount}" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock Text="Datos de demostración" Classes="muted"/>
+              </StackPanel>
+            </Border>
+            <Border Classes="card" Margin="0,0,10,0" DataContext="{Binding Reports}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Ticket medio" Classes="caption"/>
+                <TextBlock Text="{Binding AvgTicket, StringFormat='{}{0:N2} €'}" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock Text="Datos de demostración" Classes="muted"/>
+              </StackPanel>
+            </Border>
+            <Border Classes="card" DataContext="{Binding Reports}">
+              <StackPanel Spacing="4">
+                <TextBlock Text="Clientes hoy" Classes="caption"/>
+                <TextBlock Text="{Binding CustomerCount}" FontSize="24" FontWeight="SemiBold"/>
+                <TextBlock Text="Datos de demostración" Classes="muted"/>
+              </StackPanel>
+            </Border>
           </UniformGrid>
           <Border Classes="card">
             <StackPanel Spacing="10">
               <TextBlock Text="Accesos rápidos" FontWeight="SemiBold"/>
-              <WrapPanel DataContext="{Binding $parent[UserControl].DataContext}">
+              <WrapPanel>
                 <Button Classes="secondary" Margin="0,0,8,8" Content="Nueva venta · F2" Command="{Binding NavigateCommand}" CommandParameter="tpv" IsVisible="{Binding CanOperatePos}"/>
                 <Button Classes="secondary" Margin="0,0,8,8" Content="Artículos · F4" Command="{Binding NavigateCommand}" CommandParameter="articulos" IsVisible="{Binding CanManageCatalogue}"/>
                 <Button Classes="secondary" Margin="0,0,8,8" Content="Clientes · F3" Command="{Binding NavigateCommand}" CommandParameter="clientes"/>
@@ -120,7 +143,11 @@
       </ScrollViewer>
 
       <!-- TPV -->
-      <Grid IsVisible="{Binding IsTpv}" RowDefinitions="Auto,*,Auto" Margin="14" DataContext="{Binding Pos}">
+      <Grid IsVisible="{Binding IsTpv}" RowDefinitions="Auto,*,Auto" Margin="14">
+        <Grid.DataContext>
+          <Binding Path="Pos"/>
+        </Grid.DataContext>
+
         <Border Grid.Row="0" Classes="card" Padding="12,10" Margin="0,0,0,10">
           <Grid ColumnDefinitions="Auto,*,Auto">
             <StackPanel Orientation="Horizontal" Spacing="16">
@@ -148,9 +175,10 @@
               </Border>
               <ListBox ItemsSource="{Binding Lines}" BorderThickness="0" Background="Transparent">
                 <ListBox.ItemTemplate>
-                  <DataTemplate>
+                  <DataTemplate x:DataType="vm:CartLineRowProxy">
                     <Grid ColumnDefinitions="90,*,70,80,60,90" Margin="12,6">
-                      <TextBlock Text="{Binding Code}"/><TextBlock Grid.Column="1" Text="{Binding Name}"/>
+                      <TextBlock Text="{Binding Code}"/>
+                      <TextBlock Grid.Column="1" Text="{Binding Name}"/>
                       <TextBlock Grid.Column="2" Text="{Binding Qty, StringFormat='{}{0:0.##}'}"/>
                       <TextBlock Grid.Column="3" Text="{Binding Price, StringFormat='{}{0:0.00}'}"/>
                       <TextBlock Grid.Column="4" Text="{Binding DiscountPct, StringFormat='{}{0:0}%'}"/>
@@ -193,18 +221,21 @@
           </DockPanel>
         </Grid>
 
-        <Border Grid.Row="2" Classes="card" Margin="0,10,0,0" Padding="10,8" DataContext="{Binding $parent[UserControl].DataContext}">
+        <Border Grid.Row="2" Classes="card" Margin="0,10,0,0" Padding="10,8">
           <WrapPanel>
-            <Button Classes="fkey" Content="F2 Ticket" Command="{Binding Pos.CompleteMockSaleCommand}"/>
-            <Button Classes="fkey" Content="F3 Clientes" Command="{Binding NavigateCommand}" CommandParameter="clientes"/>
-            <Button Classes="fkey" Content="F4 Artículos" Command="{Binding NavigateCommand}" CommandParameter="articulos"/>
-            <Button Classes="fkey" Content="Esc Inicio" Command="{Binding NavigateCommand}" CommandParameter="inicio"/>
+            <Button Classes="fkey" Content="F2 Ticket" Command="{Binding CompleteMockSaleCommand}"/>
+            <Button Classes="fkey" Content="F3 Clientes" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="clientes"/>
+            <Button Classes="fkey" Content="F4 Artículos" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="articulos"/>
+            <Button Classes="fkey" Content="Esc Inicio" Command="{Binding #Root.((vm:ShellViewModel)DataContext).NavigateCommand}" CommandParameter="inicio"/>
           </WrapPanel>
         </Border>
       </Grid>
 
       <!-- ARTÍCULOS -->
-      <DockPanel IsVisible="{Binding IsArticulos}" Margin="18" DataContext="{Binding Products}">
+      <DockPanel IsVisible="{Binding IsArticulos}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Products"/>
+        </DockPanel.DataContext>
         <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
           <TextBlock Text="Artículos" Classes="section-title"/>
           <Grid ColumnDefinitions="*,Auto">
@@ -214,8 +245,7 @@
         </StackPanel>
         <Border Classes="card" Padding="0">
           <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False"
-                    IsReadOnly="True" CanUserResizeColumns="True" GridLinesVisibility="Horizontal"
-                    BorderThickness="0" HeadersVisibility="Column">
+                    IsReadOnly="True" CanUserResizeColumns="True" GridLinesVisibility="Horizontal" BorderThickness="0">
             <DataGrid.Columns>
               <DataGridTextColumn Header="Código" Binding="{Binding Code}" Width="100"/>
               <DataGridTextColumn Header="Nombre" Binding="{Binding Name}" Width="*"/>
@@ -230,7 +260,10 @@
       </DockPanel>
 
       <!-- CLIENTES -->
-      <DockPanel IsVisible="{Binding IsClientes}" Margin="18" DataContext="{Binding Customers}">
+      <DockPanel IsVisible="{Binding IsClientes}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Customers"/>
+        </DockPanel.DataContext>
         <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
           <TextBlock Text="Clientes" Classes="section-title"/>
           <TextBox Classes="field" Watermark="Buscar por nombre, NIF o teléfono…" Text="{Binding Search}"/>
@@ -249,7 +282,10 @@
       </DockPanel>
 
       <!-- VENTAS -->
-      <DockPanel IsVisible="{Binding IsVentas}" Margin="18" DataContext="{Binding Sales}">
+      <DockPanel IsVisible="{Binding IsVentas}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Sales"/>
+        </DockPanel.DataContext>
         <TextBlock DockPanel.Dock="Top" Text="Ventas / Tickets" Classes="section-title" Margin="0,0,0,12"/>
         <Border Classes="card" Padding="0">
           <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
@@ -266,7 +302,10 @@
       </DockPanel>
 
       <!-- STOCK -->
-      <DockPanel IsVisible="{Binding IsStock}" Margin="18" DataContext="{Binding Stock}">
+      <DockPanel IsVisible="{Binding IsStock}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Stock"/>
+        </DockPanel.DataContext>
         <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
           <TextBlock Text="Stock" Classes="section-title"/>
           <TextBlock Text="Niveles actuales y movimientos recientes (datos de demostración)." Classes="caption"/>
@@ -296,7 +335,10 @@
       </DockPanel>
 
       <!-- COMPRAS -->
-      <DockPanel IsVisible="{Binding IsCompras}" Margin="18" DataContext="{Binding Purchases}">
+      <DockPanel IsVisible="{Binding IsCompras}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Purchases"/>
+        </DockPanel.DataContext>
         <TextBlock DockPanel.Dock="Top" Text="Compras y proveedores" Classes="section-title" Margin="0,0,0,12"/>
         <Grid RowDefinitions="*,*">
           <Border Classes="card" Margin="0,0,0,8" Padding="0">
@@ -325,25 +367,27 @@
       </DockPanel>
 
       <!-- CAJA -->
-      <ScrollViewer IsVisible="{Binding IsCaja}" Padding="20" DataContext="{Binding Cash}">
-        <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left">
+      <ScrollViewer IsVisible="{Binding IsCaja}" Padding="20">
+        <StackPanel Spacing="14" MaxWidth="560" HorizontalAlignment="Left" DataContext="{Binding Cash}">
           <TextBlock Text="Caja" Classes="section-title"/>
           <TextBlock Text="{Binding Status}" Classes="caption"/>
-          <Border Classes="card"><StackPanel Spacing="10">
-            <DockPanel><TextBlock Text="Fondo de apertura"/><TextBlock DockPanel.Dock="Right" Text="{Binding OpeningFloat, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
-            <DockPanel><TextBlock Text="Ventas efectivo"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-            <DockPanel><TextBlock Text="Ventas tarjeta"/><TextBlock DockPanel.Dock="Right" Text="{Binding CardSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-            <Border Height="1" Background="{StaticResource Brush.Line}"/>
-            <DockPanel><TextBlock Text="Efectivo esperado" FontWeight="SemiBold"/><TextBlock DockPanel.Dock="Right" Text="{Binding ExpectedCash, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
-            <DockPanel><TextBlock Text="En cajón (contado)"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashInDrawer, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
-            <Button Classes="primary" Content="Cerrar caja (simulado)" Command="{Binding CloseRegisterCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
-          </StackPanel></Border>
+          <Border Classes="card">
+            <StackPanel Spacing="10">
+              <DockPanel><TextBlock Text="Fondo de apertura"/><TextBlock DockPanel.Dock="Right" Text="{Binding OpeningFloat, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
+              <DockPanel><TextBlock Text="Ventas efectivo"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+              <DockPanel><TextBlock Text="Ventas tarjeta"/><TextBlock DockPanel.Dock="Right" Text="{Binding CardSales, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+              <Border Height="1" Background="{StaticResource Brush.Line}"/>
+              <DockPanel><TextBlock Text="Efectivo esperado" FontWeight="SemiBold"/><TextBlock DockPanel.Dock="Right" Text="{Binding ExpectedCash, StringFormat='{}{0:N2} €'}" FontWeight="SemiBold" HorizontalAlignment="Right"/></DockPanel>
+              <DockPanel><TextBlock Text="En cajón (contado)"/><TextBlock DockPanel.Dock="Right" Text="{Binding CashInDrawer, StringFormat='{}{0:N2} €'}" HorizontalAlignment="Right"/></DockPanel>
+              <Button Classes="primary" Content="Cerrar caja (simulado)" Command="{Binding CloseRegisterCommand}" HorizontalAlignment="Left" Margin="0,8,0,0"/>
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
 
       <!-- INFORMES -->
-      <ScrollViewer IsVisible="{Binding IsInformes}" Padding="20" DataContext="{Binding Reports}">
-        <StackPanel Spacing="14">
+      <ScrollViewer IsVisible="{Binding IsInformes}" Padding="20">
+        <StackPanel Spacing="14" DataContext="{Binding Reports}">
           <TextBlock Text="Informes" Classes="section-title"/>
           <UniformGrid Columns="4">
             <Border Classes="card" Margin="0,0,10,0"><StackPanel><TextBlock Text="Ventas" Classes="caption"/><TextBlock Text="{Binding SalesTotal, StringFormat='{}{0:N2} €'}" FontSize="22" FontWeight="SemiBold"/></StackPanel></Border>
@@ -356,7 +400,10 @@
       </ScrollViewer>
 
       <!-- USUARIOS -->
-      <DockPanel IsVisible="{Binding IsUsuarios}" Margin="18" DataContext="{Binding Users}">
+      <DockPanel IsVisible="{Binding IsUsuarios}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="Users"/>
+        </DockPanel.DataContext>
         <TextBlock DockPanel.Dock="Top" Text="Usuarios y roles" Classes="section-title" Margin="0,0,0,12"/>
         <Border Classes="card" Padding="0">
           <DataGrid ItemsSource="{Binding Items}" SelectedItem="{Binding Selected}" AutoGenerateColumns="False" IsReadOnly="True" BorderThickness="0">
@@ -372,8 +419,8 @@
       </DockPanel>
 
       <!-- CONFIG -->
-      <ScrollViewer IsVisible="{Binding IsConfig}" Padding="20" DataContext="{Binding Settings}">
-        <StackPanel Spacing="12" MaxWidth="480">
+      <ScrollViewer IsVisible="{Binding IsConfig}" Padding="20">
+        <StackPanel Spacing="12" MaxWidth="480" DataContext="{Binding Settings}">
           <TextBlock Text="Configuración" Classes="section-title"/>
           <TextBlock Text="Nombre de tienda" Classes="caption"/><TextBox Classes="field" Text="{Binding StoreName}"/>
           <TextBlock Text="NIF" Classes="caption"/><TextBox Classes="field" Text="{Binding Nif}"/>
@@ -386,7 +433,10 @@
       </ScrollViewer>
 
       <!-- VERIFACTU -->
-      <DockPanel IsVisible="{Binding IsVerifactu}" Margin="18" DataContext="{Binding VeriFactu}">
+      <DockPanel IsVisible="{Binding IsVerifactu}" Margin="18">
+        <DockPanel.DataContext>
+          <Binding Path="VeriFactu"/>
+        </DockPanel.DataContext>
         <StackPanel DockPanel.Dock="Top" Spacing="12" Margin="0,0,0,12">
           <TextBlock Text="VeriFactu" Classes="section-title"/>
           <UniformGrid Columns="4">
