@@ -5,7 +5,7 @@
         x:Class="Lumina.Pos.UI.MainWindow"
         x:DataType="vm:ShellViewModel"
         Title="Lumina POS"
-        Width="1024" Height="720"
+        Width="1100" Height="750"
         WindowStartupLocation="CenterScreen"
         Background="#12121A">
 
@@ -13,13 +13,15 @@
         <DataTemplate DataType="vm:LoginViewModel">
             <views:LoginView />
         </DataTemplate>
+        <DataTemplate DataType="vm:PosCartViewModel">
+            <views:PosCartView />
+        </DataTemplate>
         <DataTemplate DataType="vm:MainPlaceholderViewModel">
             <views:MainPlaceholderView />
         </DataTemplate>
     </Window.DataTemplates>
 
     <DockPanel>
-        <!-- Top bar (visible only when logged in) -->
         <Border DockPanel.Dock="Top"
                 Background="#1A1A28"
                 Padding="12,8"
@@ -43,7 +45,6 @@
             </Grid>
         </Border>
 
-        <!-- Main content area: login or post-login shell -->
         <ContentControl Content="{Binding CurrentContent}"
                         HorizontalAlignment="Stretch"
                         VerticalAlignment="Stretch" />
