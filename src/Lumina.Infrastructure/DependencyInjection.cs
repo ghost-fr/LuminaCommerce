@@ -19,16 +19,6 @@ namespace Lumina.Infrastructure;
 /// identically from both Lumina.Pos.UI and Lumina.BackOffice.UI's composition
 /// roots (App.axaml.cs) so the two apps never drift on what's registered — if a
 /// new backend service needs registering, add it here once, not in both apps.
-///
-/// IMPORTANT for whoever wires the nav shell (Grok): almost everything below is
-/// registered AddScoped, which is the right lifetime for anything touching
-/// LuminaDbContext (not thread-safe, one unit of work at a time). In a desktop
-/// app that never calls IServiceProvider.CreateScope() itself, resolving
-/// directly from the root provider effectively gives you one shared instance
-/// per service for the whole app run — which is what you want for IAuthService
-/// (one login session for the process lifetime). If a nav/scope pattern is later
-/// introduced that calls CreateScope() per screen, IAuthService.CurrentSession
-/// would silently reset per screen — worth keeping in mind before adding one.
 /// </summary>
 public static class DependencyInjection
 {
@@ -52,8 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IRegisterRepository, RegisterRepository>();
         services.AddScoped<IVeriFactuChainStore, VeriFactuChainStore>();
 
-        // Phase 3 placeholder — swap for the real Phase 4 stock ledger when it
-        // lands, see docs/PHASE2_3_NOTES.md item 1.
+        // Phase 3 placeholder — swap for the real Phase 4 stock ledger when it lands
         services.AddScoped<IStockAvailabilityChecker, PlaceholderStockAvailabilityChecker>();
 
         // Fiscal — stateless, safe as singletons
@@ -63,7 +52,14 @@ public static class DependencyInjection
 
         // Application services
         services.AddScoped<PricingService>();
-        services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
+
+        // PosSaleService depends on the concrete ProductCatalogueService (uses
+        // FindByBarcodeInternalAsync). Register concrete first, then expose the
+        // same instance via IProductCatalogueService for UI/other consumers.
+        services.AddScoped<ProductCatalogueService>();
+        services.AddScoped<IProductCatalogueService>(sp =>
+            sp.GetRequiredService<ProductCatalogueService>());
+
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPosSaleService, PosSaleService>();
 
