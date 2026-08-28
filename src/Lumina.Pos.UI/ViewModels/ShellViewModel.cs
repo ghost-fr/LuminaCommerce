@@ -1,6 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lumina.Contracts.Auth;
+using Lumina.Contracts.Pos;
 using Lumina.Domain.Identity;
 
 namespace Lumina.Pos.UI.ViewModels;
@@ -13,6 +14,7 @@ namespace Lumina.Pos.UI.ViewModels;
 public partial class ShellViewModel : ObservableObject
 {
     private readonly IAuthService _auth;
+    private readonly IPosSaleService _pos;
 
     [ObservableProperty]
     private object? _currentContent;
@@ -25,9 +27,10 @@ public partial class ShellViewModel : ObservableObject
 
     public LoginViewModel Login { get; }
 
-    public ShellViewModel(IAuthService auth)
+    public ShellViewModel(IAuthService auth, IPosSaleService pos)
     {
         _auth = auth;
+        _pos = pos;
         Login = new LoginViewModel(auth, OnLoginSucceeded);
         ShowLogin();
     }
@@ -44,9 +47,18 @@ public partial class ShellViewModel : ObservableObject
         IsLoggedIn = true;
         StatusText = $"{session.DisplayName}  ·  Store {session.StoreId.ToString()[..8]}…";
 
-        // For now show a simple placeholder main area. Phase 3 cart/sale UI will
-        // replace this content. Capability checks are already available for menus.
-        CurrentContent = new MainPlaceholderViewModel(session);
+        // Capability gate: only operators with pos.operate_register get the cart.
+        if (!session.HasCapability(Capabilities.PosOperateRegister))
+        {
+            CurrentContent = new MainPlaceholderViewModel(session);
+            StatusText += "  ·  (no pos.operate_register)";
+            return;
+        }
+
+        // RegisterId: until open-register lands on the contract, pass Guid.Empty.
+        // Complete sale will reject with RegisterNotOpen until SeedDev / backend
+        // provides an open register id (or a future CreateCart+OpenRegister API).
+        CurrentContent = new PosCartViewModel(_pos, session, registerId: null);
     }
 
     private void ShowLogin()
@@ -63,7 +75,6 @@ public partial class ShellViewModel : ObservableObject
         ShowLogin();
     }
 
-    /// <summary>Convenience for XAML / code that needs capability checks.</summary>
     public bool CanOperateRegister =>
         _auth.CurrentSession?.HasCapability(Capabilities.PosOperateRegister) == true;
 
@@ -75,8 +86,7 @@ public partial class ShellViewModel : ObservableObject
 }
 
 /// <summary>
-/// Temporary placeholder shown after successful login until the real POS cart
-/// screen (Phase 3 UI) is built.
+/// Shown when the user lacks pos.operate_register (or as fallback).
 /// </summary>
 public partial class MainPlaceholderViewModel : ObservableObject
 {
