@@ -7,7 +7,7 @@
   <!-- Dense cashier workstation: GesVent IA + modern dark chrome -->
   <Grid RowDefinitions="Auto,*,Auto,Auto" Margin="8">
 
-    <!-- ═══ TOP STRIP: Tienda / Caja / Ticket / Empleado + TOTAL ═══ -->
+    <!-- TOP STRIP: Tienda / Caja / Ticket / Empleado + TOTAL -->
     <Border Grid.Row="0" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
             CornerRadius="8" Padding="12,8" Margin="0,0,0,8">
       <Grid ColumnDefinitions="*,*,*,*,2*">
@@ -21,7 +21,7 @@
         </StackPanel>
         <StackPanel Grid.Column="2">
           <TextBlock Text="Ticket" FontSize="10" Foreground="#8B949E" />
-          <TextBlock Text="{Binding TicketNumber}" Text="—" FontWeight="SemiBold" Foreground="#E6EDF3" />
+          <TextBlock Text="{Binding TicketNumber, TargetNullValue=—}" FontWeight="SemiBold" Foreground="#E6EDF3" />
         </StackPanel>
         <StackPanel Grid.Column="3">
           <TextBlock Text="Cajero" FontSize="10" Foreground="#8B949E" />
@@ -36,14 +36,12 @@
       </Grid>
     </Border>
 
-    <!-- ═══ MAIN: Ticket | Keypad+Pay | Receipt+VeriFactu ═══ -->
+    <!-- MAIN: Ticket | Keypad+Pay | Receipt+VeriFactu -->
     <Grid Grid.Row="1" ColumnDefinitions="*,220,260" RowDefinitions="*">
 
-      <!-- LEFT: product ticket table -->
       <Border Grid.Column="0" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
               CornerRadius="8" Margin="0,0,8,0" Padding="0">
         <DockPanel>
-          <!-- Scan row -->
           <Border DockPanel.Dock="Top" Padding="10,8" BorderBrush="#21262D" BorderThickness="0,0,0,1">
             <Grid ColumnDefinitions="*,80,Auto">
               <TextBox Watermark="Código de barras / SKU"
@@ -57,7 +55,6 @@
             </Grid>
           </Border>
 
-          <!-- Column headers -->
           <Border DockPanel.Dock="Top" Background="#0D1117" Padding="10,6">
             <Grid ColumnDefinitions="40,*,70,55,55,80,36">
               <TextBlock Text="#" Foreground="#8B949E" FontSize="11" />
@@ -93,9 +90,7 @@
         </DockPanel>
       </Border>
 
-      <!-- CENTER: numeric keypad + payment F-keys -->
       <DockPanel Grid.Column="1" Margin="0,0,8,0">
-        <!-- Totals block -->
         <Border DockPanel.Dock="Top" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
                 CornerRadius="8" Padding="12" Margin="0,0,0,8">
           <StackPanel Spacing="4">
@@ -127,7 +122,6 @@
           </StackPanel>
         </Border>
 
-        <!-- Keypad buffer + mode -->
         <Border DockPanel.Dock="Top" Background="#0D1117" BorderBrush="#21262D" BorderThickness="1"
                 CornerRadius="6" Padding="8" Margin="0,0,0,6">
           <StackPanel>
@@ -137,14 +131,12 @@
           </StackPanel>
         </Border>
 
-        <!-- Mode buttons: Cant / Precio / Dto -->
         <UniformGrid DockPanel.Dock="Top" Columns="3" Margin="0,0,0,6">
           <Button Content="Cant." Command="{Binding SetKeypadTargetCommand}" CommandParameter="Quantity" Margin="2" MinHeight="36" />
           <Button Content="Precio" Command="{Binding SetKeypadTargetCommand}" CommandParameter="Price" Margin="2" MinHeight="36" />
           <Button Content="Dto." Command="{Binding SetKeypadTargetCommand}" CommandParameter="Discount" Margin="2" MinHeight="36" />
         </UniformGrid>
 
-        <!-- 3x4 keypad -->
         <UniformGrid DockPanel.Dock="Top" Columns="3" Rows="4" Margin="0,0,0,6">
           <Button Content="7" Command="{Binding KeypadDigitCommand}" CommandParameter="7" Margin="2" MinHeight="44" FontSize="18" />
           <Button Content="8" Command="{Binding KeypadDigitCommand}" CommandParameter="8" Margin="2" MinHeight="44" FontSize="18" />
@@ -166,7 +158,6 @@
           <Button Content="Intro" Command="{Binding KeypadEnterCommand}" Margin="2" MinHeight="36" Classes="accent" />
         </UniformGrid>
 
-        <!-- Payment actions F8–F12 -->
         <StackPanel Spacing="4">
           <Button Content="F8  Efectivo" Command="{Binding PayCashCommand}" HorizontalAlignment="Stretch" MinHeight="40" />
           <Button Content="F9  Tarjeta" Command="{Binding PayCardCommand}" HorizontalAlignment="Stretch" MinHeight="40" />
@@ -177,20 +168,13 @@
         </StackPanel>
       </DockPanel>
 
-      <!-- RIGHT: receipt preview + VeriFactu -->
       <DockPanel Grid.Column="2">
         <Border DockPanel.Dock="Top" Background="#F0F6FC" CornerRadius="8" Padding="12" Margin="0,0,0,8"
                 MinHeight="220">
           <StackPanel Spacing="2">
             <TextBlock Text="Factura simplificada" FontWeight="Bold" Foreground="#0D1117" FontSize="13" />
             <TextBlock Text="{Binding StoreLabel}" Foreground="#24292F" FontSize="11" />
-            <TextBlock Foreground="#57606A" FontSize="11">
-              <TextBlock.Text>
-                <MultiBinding StringFormat="{}Ticket: {0}">
-                  <Binding Path="TicketNumber" TargetNullValue="—" />
-                </MultiBinding>
-              </TextBlock.Text>
-            </TextBlock>
+            <TextBlock Text="{Binding TicketNumber, StringFormat='Ticket: {0}', TargetNullValue='Ticket: —'}" Foreground="#57606A" FontSize="11" />
             <TextBlock Text="{Binding SaleCompletedAt, StringFormat='{}{0:dd/MM/yyyy HH:mm}', TargetNullValue='—'}"
                        Foreground="#57606A" FontSize="11" />
             <TextBlock Text="{Binding CashierLabel, StringFormat='Cajero: {0}'}" Foreground="#57606A" FontSize="11" />
@@ -249,7 +233,6 @@
       </DockPanel>
     </Grid>
 
-    <!-- ═══ FUNCTION KEY BAR (F3–F7 + New sale) ═══ -->
     <Border Grid.Row="2" Background="#161B22" BorderBrush="#21262D" BorderThickness="1"
             CornerRadius="8" Padding="6" Margin="0,8,0,0">
       <UniformGrid Columns="7">
@@ -263,7 +246,6 @@
       </UniformGrid>
     </Border>
 
-    <!-- ═══ STATUS ═══ -->
     <Border Grid.Row="3" Margin="0,8,0,0" Padding="12,8" CornerRadius="6"
             Background="#0D1117" BorderBrush="#21262D" BorderThickness="1">
       <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" Foreground="#A0C4FF" FontSize="12" />
