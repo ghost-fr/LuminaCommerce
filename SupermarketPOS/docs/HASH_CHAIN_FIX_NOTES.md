@@ -9,17 +9,23 @@ was written against them.
 
 ## What's now VERIFIED (not inferred, not guessed)
 
-**Hash algorithm and format** — confirmed against two real AEAT worked examples
-("Caso 2" registration, "Caso 3" cancellation) from AEAT's "Algoritmo de cálculo de
-codificación de la huella" document:
+**Hash algorithm and format** — confirmed against **three** real AEAT worked
+examples (Caso 1: first record with empty `Huella`; Caso 2: registration;
+Caso 3: cancellation) from AEAT's "Algoritmo de cálculo de codificación de la
+huella" document:
 - SHA-256 over UTF-8 bytes of a query-string-style canonical form:
   `Campo=Valor&Campo=Valor...`, no trailing separator
 - Output is **UPPERCASE** 64-char hex (the original implementation force-lowercased —
   confirmed as a real bug, now fixed)
 - Field order and exact names confirmed for BOTH record types (see below)
-- The two AEAT examples are a genuine consecutive pair (Caso 2's output hash is
-  literally the `Huella` input to Caso 3) — verified that chaining them
-  programmatically reproduces AEAT's documented output exactly
+- **All three AEAT examples form one continuous real chain** — Caso 1's output
+  hash is Caso 2's `PreviousHash` input; Caso 2's output is Caso 3's. Reproducing
+  all three from scratch, independently, gives AEAT's exact documented output at
+  every link. This is the strongest verification level available short of an
+  actual live AEAT sandbox call.
+- Empty `Huella` (first record in a chain) confirmed to serialize as the literal
+  substring `Huella=` (field name + `=` + nothing) — not omitted, not null-handled
+  specially. Verified via Caso 1.
 
 **Registration record ("RF de alta") fields**, in order:
 `IDEmisorFactura, NumSerieFactura, FechaExpedicionFactura, TipoFactura, CuotaTotal,
@@ -88,9 +94,10 @@ Huella, FechaHoraHusoGenRegistro`
 
 The hash chain's *core mechanism* — the part where getting it wrong would mean
 every single invoice fails AEAT validation — is now verified against real AEAT
-data with 6 passing fixed-vector tests (2 hash values, 1 canonical-string check,
-1 chain-link check, 2 general-behavior checks) plus 4 QR tests. That's the
-highest-risk part, and it's solid now.
+data with 9 passing fixed-vector tests (3 hash values covering the first-record/
+empty-Huella case, a mid-chain registration, and a cancellation; a full 3-record
+chain reproduction test; a canonical-string format check; general-behavior checks)
+plus 4 QR tests. That's the highest-risk part, and it's solid now.
 
 What's NOT done: the cancellation/rectification workflow itself (nothing calls
 `ComputeCancellationHash` from application code yet — that's Phase 5+), the

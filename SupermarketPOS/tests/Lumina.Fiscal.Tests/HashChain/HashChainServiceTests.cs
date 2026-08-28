@@ -100,6 +100,70 @@ public class HashChainServiceTests
         Assert.Equal("177547C0D57AC74748561D054A9CEC14B4C4EA23D1BEFD6F2E69E3A388F90C68", cancellationHash);
     }
 
+    // AEAT document "Caso 1: primer registro de facturación –en este caso, de
+    // alta– en un Sistema Informático de Facturación (SIF)" — the first record
+    // in a chain, where Huella is empty. Confirms BuildQueryString produces
+    // "Huella=" (field name + "=" + nothing) rather than omitting the field
+    // entirely or erroring on an empty value.
+    [Fact]
+    public void ComputeRegistrationHash_AeatCaso1_FirstRecordEmptyHuella_MatchesDocumentedOutput()
+    {
+        var input = new RegistrationRecordInput(
+            IssuerNif: "89890001K",
+            InvoiceSeriesAndNumber: "12345678/G33",
+            IssueDate: new DateOnly(2024, 1, 1),
+            InvoiceType: "F1",
+            VatAmount: 12.35m,
+            TotalAmount: 123.45m,
+            PreviousHash: "",
+            GeneratedAt: new DateTimeOffset(2024, 1, 1, 19, 20, 30, TimeSpan.FromHours(1)));
+
+        var hash = _sut.ComputeRegistrationHash(input);
+
+        Assert.Equal("3C464DAF61ACB827C65FDA19F352A4E3BDC2C640E9E9FC4CC058073F38F12F60", hash);
+    }
+
+    [Fact]
+    public void BuildRegistrationCanonicalString_EmptyPreviousHash_ProducesFieldNameWithEmptyValue()
+    {
+        var input = new RegistrationRecordInput(
+            "89890001K", "12345678/G33", new DateOnly(2024, 1, 1), "F1", 12.35m, 123.45m, "",
+            new DateTimeOffset(2024, 1, 1, 19, 20, 30, TimeSpan.FromHours(1)));
+
+        var canonical = HashChainService.BuildRegistrationCanonicalString(input);
+
+        Assert.Contains("&Huella=&FechaHoraHusoGenRegistro=", canonical);
+    }
+
+    /// <summary>
+    /// The strongest check in this file: AEAT's three worked examples (Caso 1, 2,
+    /// 3) are a genuine end-to-end chain — Caso 1's output feeds Caso 2's input,
+    /// Caso 2's output feeds Caso 3's input. Reproducing all three from scratch
+    /// and getting AEAT's exact documented outputs at every link is about as
+    /// strong a verification as is possible without a live AEAT sandbox call.
+    /// </summary>
+    [Fact]
+    public void AeatCaso1Through3_FormACompleteVerifiedChain()
+    {
+        var first = new RegistrationRecordInput(
+            "89890001K", "12345678/G33", new DateOnly(2024, 1, 1), "F1", 12.35m, 123.45m, "",
+            new DateTimeOffset(2024, 1, 1, 19, 20, 30, TimeSpan.FromHours(1)));
+        var firstHash = _sut.ComputeRegistrationHash(first);
+        Assert.Equal("3C464DAF61ACB827C65FDA19F352A4E3BDC2C640E9E9FC4CC058073F38F12F60", firstHash);
+
+        var second = new RegistrationRecordInput(
+            "89890001K", "12345679/G34", new DateOnly(2024, 1, 1), "F1", 12.35m, 123.45m,
+            firstHash, new DateTimeOffset(2024, 1, 1, 19, 20, 35, TimeSpan.FromHours(1)));
+        var secondHash = _sut.ComputeRegistrationHash(second);
+        Assert.Equal("F7B94CFD8924EDFF273501B01EE5153E4CE8F259766F88CF6ACB8935802A2B97", secondHash);
+
+        var third = new CancellationRecordInput(
+            "89890001K", "12345679/G34", new DateOnly(2024, 1, 1),
+            secondHash, new DateTimeOffset(2024, 1, 1, 19, 20, 40, TimeSpan.FromHours(1)));
+        var thirdHash = _sut.ComputeCancellationHash(third);
+        Assert.Equal("177547C0D57AC74748561D054A9CEC14B4C4EA23D1BEFD6F2E69E3A388F90C68", thirdHash);
+    }
+
     [Fact]
     public void ComputeRegistrationHash_IsUppercase64CharHex()
     {

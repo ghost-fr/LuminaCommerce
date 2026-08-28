@@ -152,9 +152,33 @@ public sealed class PosSaleService : IPosSaleService
         // wiring that config lookup is a Phase 9 hardening item, flagged not guessed.
         var sifBoundaryId = store.Id;
 
+        // FechaHoraHusoGenRegistro must reflect the STORE's local timezone with
+        // an explicit offset (verified against AEAT's own example: "+01:00", not
+        // "Z"/UTC) — Sale.CompletedAt is stored as UTC, so it's converted here
+        // using Store.TimeZoneId before being sent to the fiscal layer. Confirmed
+        // format via AEAT's documented example; confirmed NEED for local-not-UTC
+        // is inferred from the field name itself ("HusoHorario" = timezone) and
+        // hasn't been independently re-verified beyond that — flagged in
+        // docs/PHASE2_3_NOTES.md as the one still-soft assumption in this fix.
+        var storeTimeZone = TimeZoneInfo.FindSystemTimeZoneById(store.TimeZoneId);
+        var generatedAtLocal = TimeZoneInfo.ConvertTime(sale.CompletedAt, storeTimeZone);
+
+        // TipoFactura: defaulted to "F2" (factura simplificada / ticket) as the
+        // reasonable default for POS retail sales with no full-invoice customer
+        // details — NOT independently confirmed against AEAT's invoice-type code
+        // list (L2). AEAT's own worked example used "F1" (factura completa), which
+        // this deliberately does NOT copy blindly, since a supermarket POS ticket
+        // is far more likely to be a simplified invoice than a complete one. This
+        // classification should be confirmed with an accountant/gestor familiar
+        // with the L2 code list before real invoices use this — flagged, not
+        // silently assumed correct. See docs/PHASE2_3_NOTES.md.
+        const string invoiceType = "F2";
+
         var fiscalResult = await _fiscal.GenerateAsync(
             sifBoundaryId,
-            new FiscalRecordRequest(tenant.Nif, ticketNumber, DateOnly.FromDateTime(sale.CompletedAt.Date), sale.Total),
+            new FiscalRecordRequest(
+                tenant.Nif, ticketNumber, DateOnly.FromDateTime(sale.CompletedAt.Date),
+                invoiceType, sale.VatTotal, sale.Total, generatedAtLocal),
             ct);
 
         sale.AttachVeriFactuRecord(fiscalResult.VeriFactuRecordId);
