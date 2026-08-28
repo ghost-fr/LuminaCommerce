@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+
+    <Border Background="#1E1E2E"
+            CornerRadius="12"
+            Padding="40"
+            MaxWidth="420"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+        <StackPanel Spacing="16">
+            <TextBlock Text="Lumina POS"
+                       FontSize="28"
+                       FontWeight="Bold"
+                       Foreground="White"
+                       HorizontalAlignment="Center" />
+
+            <TextBlock Text="Sign in to continue"
+                       Foreground="#A0A0B0"
+                       HorizontalAlignment="Center"
+                       Margin="0,0,0,12" />
+
+            <TextBox Watermark="Username"
+                     Text="{Binding Username}"
+                     IsEnabled="{Binding !IsBusy}"
+                     FontSize="16"
+                     MinHeight="40" />
+
+            <TextBox Watermark="Password"
+                     Text="{Binding Password}"
+                     PasswordChar="•"
+                     IsEnabled="{Binding !IsBusy}"
+                     FontSize="16"
+                     MinHeight="40" />
+
+            <TextBlock Text="{Binding ErrorMessage}"
+                       Foreground="#FF6B6B"
+                       TextWrapping="Wrap"
+                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                       Margin="0,4,0,0" />
+
+            <Button Content="Sign in"
+                    Command="{Binding LoginCommand}"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Center"
+                    MinHeight="44"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Classes="accent"
+                    Margin="0,8,0,0" />
+
+            <TextBlock Text="Busy…"
+                       IsVisible="{Binding IsBusy}"
+                       Foreground="#A0A0B0"
+                       HorizontalAlignment="Center" />
+        </StackPanel>
+    </Border>
+</UserControl>
