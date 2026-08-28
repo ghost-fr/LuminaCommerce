@@ -1,18 +1,51 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+        xmlns:views="using:Lumina.Pos.UI.Views"
         x:Class="Lumina.Pos.UI.MainWindow"
+        x:DataType="vm:ShellViewModel"
         Title="Lumina POS"
-        Width="900" Height="650">
-    <!--
-      PLACEHOLDER — this file exists only so the app has an entry point and the
-      solution builds. Grok: replace this entire window's content with the real
-      login screen + capability-gated nav shell per docs/CONTRACTS.md §0. The
-      backend is fully wired and resolvable via App.Services (IAuthService,
-      IPosSaleService, IProductCatalogueService, etc.) — see App.axaml.cs.
-    -->
-    <StackPanel Margin="24" Spacing="12">
-        <TextBlock FontSize="20" FontWeight="Bold" Text="Lumina POS — backend wired, UI pending" />
-        <TextBlock TextWrapping="Wrap"
-                   Text="Replace MainWindow.axaml with the login screen and capability-gated nav shell. App.Services exposes the full backend DI container." />
-    </StackPanel>
+        Width="1024" Height="720"
+        WindowStartupLocation="CenterScreen"
+        Background="#12121A">
+
+    <Window.DataTemplates>
+        <DataTemplate DataType="vm:LoginViewModel">
+            <views:LoginView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MainPlaceholderViewModel">
+            <views:MainPlaceholderView />
+        </DataTemplate>
+    </Window.DataTemplates>
+
+    <DockPanel>
+        <!-- Top bar (visible only when logged in) -->
+        <Border DockPanel.Dock="Top"
+                Background="#1A1A28"
+                Padding="12,8"
+                IsVisible="{Binding IsLoggedIn}">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Text="Lumina POS"
+                           FontWeight="Bold"
+                           VerticalAlignment="Center"
+                           Foreground="White" />
+
+                <TextBlock Grid.Column="1"
+                           Text="{Binding StatusText}"
+                           VerticalAlignment="Center"
+                           Foreground="#A0A0B0"
+                           Margin="0,0,16,0" />
+
+                <Button Grid.Column="2"
+                        Content="Sign out"
+                        Command="{Binding LogoutCommand}"
+                        Padding="12,6" />
+            </Grid>
+        </Border>
+
+        <!-- Main content area: login or post-login shell -->
+        <ContentControl Content="{Binding CurrentContent}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch" />
+    </DockPanel>
 </Window>
