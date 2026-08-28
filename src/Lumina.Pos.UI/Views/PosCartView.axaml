@@ -130,10 +130,10 @@
                 Margin="0,12,0,0"
                 Padding="12,8"
                 CornerRadius="6"
-                Background="{Binding IsError, Converter={x:Static BoolConverters.ToBrush}, ConverterParameter='#3A1E1E;#1E2A3A'}">
+                Background="#1E2A3A">
             <TextBlock Text="{Binding StatusMessage}"
                        TextWrapping="Wrap"
-                       Foreground="{Binding IsError, Converter={x:Static BoolConverters.ToBrush}, ConverterParameter='#FF6B6B;#A0C4FF'}" />
+                       Foreground="#A0C4FF" />
         </Border>
     </Grid>
 </UserControl>
