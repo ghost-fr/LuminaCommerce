@@ -2,13 +2,13 @@ using Lumina.Application.Auth;
 using Lumina.Application.Catalogue;
 using Lumina.Application.Pos;
 using Lumina.Application.Ports;
+using Lumina.Application.Stock;
 using Lumina.Contracts.Auth;
 using Lumina.Contracts.Catalogue;
 using Lumina.Contracts.Pos;
 using Lumina.Fiscal.HashChain;
 using Lumina.Infrastructure.Persistence;
 using Lumina.Infrastructure.Persistence.Repositories;
-using Lumina.Infrastructure.Stock;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -29,6 +29,11 @@ namespace Lumina.Infrastructure;
 /// (one login session for the process lifetime). If a nav/scope pattern is later
 /// introduced that calls CreateScope() per screen, IAuthService.CurrentSession
 /// would silently reset per screen — worth keeping in mind before adding one.
+///
+/// NOTE — this file replaces the composition-root version. As of Phase 4,
+/// IStockAvailabilityChecker is backed by the real append-only stock ledger
+/// (LedgerBackedStockAvailabilityChecker), not the Phase 3 always-available
+/// placeholder — every sale now actually checks and decrements real stock.
 /// </summary>
 public static class DependencyInjection
 {
@@ -39,7 +44,7 @@ public static class DependencyInjection
 
         services.AddSingleton<ICurrentTenantProvider>(new ConfigCurrentTenantProvider(tenantId));
 
-        // Repositories (Phase 1-3)
+        // Repositories (Phase 1-4)
         services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IRoleRepository, RoleRepository>();
         services.AddScoped<IStoreRepository, StoreRepository>();
@@ -51,10 +56,7 @@ public static class DependencyInjection
         services.AddScoped<ISaleRepository, SaleRepository>();
         services.AddScoped<IRegisterRepository, RegisterRepository>();
         services.AddScoped<IVeriFactuChainStore, VeriFactuChainStore>();
-
-        // Phase 3 placeholder — swap for the real Phase 4 stock ledger when it
-        // lands, see docs/PHASE2_3_NOTES.md item 1.
-        services.AddScoped<IStockAvailabilityChecker, PlaceholderStockAvailabilityChecker>();
+        services.AddScoped<IStockLedgerRepository, StockLedgerRepository>();
 
         // Fiscal — stateless, safe as singletons
         services.AddSingleton<HashChainService>();
@@ -65,6 +67,8 @@ public static class DependencyInjection
         services.AddScoped<PricingService>();
         services.AddScoped<IProductCatalogueService, ProductCatalogueService>();
         services.AddScoped<IAuthService, AuthService>();
+        services.AddScoped<StockLedgerService>();
+        services.AddScoped<IStockAvailabilityChecker, LedgerBackedStockAvailabilityChecker>();
         services.AddScoped<IPosSaleService, PosSaleService>();
 
         return services;
