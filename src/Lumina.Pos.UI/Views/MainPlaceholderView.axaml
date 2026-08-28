@@ -9,7 +9,7 @@
                    FontSize="24"
                    FontWeight="SemiBold" />
 
-        <TextBlock Text="POS cart & sale screen (Phase 3 UI) will live here."
+        <TextBlock Text="POS cart and sale screen (Phase 3 UI) will live here."
                    Foreground="#888"
                    TextWrapping="Wrap"
                    MaxWidth="480"
