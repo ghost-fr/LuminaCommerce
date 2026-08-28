@@ -8,8 +8,8 @@ class Program
     [STAThread]
     public static int Main(string[] args)
     {
-        // WinExe has no console by default — attach one in Debug so exceptions are visible.
-        // Also always write a crash file next to the exe so silent exits are diagnosable.
+        // WinExe has no console by default — attach one so exceptions are visible.
+        // Also write pos-crash.log next to the exe for silent exits.
         try
         {
             AttachConsoleIfPossible();
@@ -28,7 +28,6 @@ class Program
             }
             catch { /* ignore secondary failures */ }
 
-            // Keep the console open briefly when launched from Explorer
             if (Debugger.IsAttached == false && Environment.UserInteractive)
             {
                 Console.Error.WriteLine("Press Enter to exit...");
@@ -41,14 +40,12 @@ class Program
     public static AppBuilder BuildAvaloniaApp() =>
         AppBuilder.Configure<App>()
             .UsePlatformDetect()
-            .WithInterFont()
             .LogToTrace();
 
     private static void AttachConsoleIfPossible()
     {
         try
         {
-            // If already attached (dotnet run), this is a no-op / false.
             AllocConsole();
         }
         catch
