@@ -18,13 +18,11 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private Guid _cartId;
     [ObservableProperty] private Guid _registerId;
 
-    // —— Ticket / scan ——
     [ObservableProperty] private string _barcodeInput = string.Empty;
     [ObservableProperty] private decimal _quantityInput = 1m;
     [ObservableProperty] private ObservableCollection<CartLineItem> _lines = new();
     [ObservableProperty] private CartLineItem? _selectedLine;
 
-    // —— Money ——
     [ObservableProperty] private decimal _subtotal;
     [ObservableProperty] private decimal _vatTotal;
     [ObservableProperty] private decimal _discountTotal;
@@ -33,16 +31,13 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private decimal _tenderCard;
     [ObservableProperty] private string _paymentLabel = "—";
 
-    // —— Keypad (cashier hardware pattern) ——
     [ObservableProperty] private string _keypadBuffer = string.Empty;
     [ObservableProperty] private KeypadTarget _keypadTarget = KeypadTarget.Quantity;
 
-    // —— Session strip (Tienda / Caja / Ticket / Empleado) ——
     public string StoreLabel => $"Store {_session.StoreId.ToString()[..8]}…";
     public string CashierLabel => _session.DisplayName;
     public string RegisterLabel => RegisterId == Guid.Empty ? "Caja —" : $"Caja {RegisterId.ToString()[..8]}…";
 
-    // —— Status / sale result ——
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private bool _isError;
     [ObservableProperty] private bool _isBusy;
@@ -51,7 +46,6 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private string? _qrPayload;
     [ObservableProperty] private DateTimeOffset? _saleCompletedAt;
 
-    // —— VeriFactu panel ——
     [ObservableProperty] private string _veriFactuEstado = "—";
     [ObservableProperty] private string _veriFactuEnviado = "—";
     [ObservableProperty] private string _veriFactuRespuesta = "—";
@@ -102,8 +96,6 @@ public partial class PosCartViewModel : ObservableObject
         VeriFactuHash = "—";
         VeriFactuRegistroAnterior = "—";
     }
-
-    // ═══════════ Lines ═══════════
 
     [RelayCommand(CanExecute = nameof(CanAddLine))]
     private async Task AddLineAsync()
@@ -161,8 +153,6 @@ public partial class PosCartViewModel : ObservableObject
             NotifyCommands();
         }
     }
-
-    // ═══════════ Keypad ═══════════
 
     [RelayCommand]
     private void KeypadDigit(string? digit)
@@ -253,8 +243,6 @@ public partial class PosCartViewModel : ObservableObject
         KeypadBuffer = string.Empty;
     }
 
-    // ═══════════ Function keys (cashier bar) ═══════════
-
     [RelayCommand]
     private void FunctionClientes() =>
         StatusMessage = "F3 Clientes — selector de cliente (pendiente módulo CRM).";
@@ -314,8 +302,6 @@ public partial class PosCartViewModel : ObservableObject
     private void PayGiftTicket() =>
         StatusMessage = "F11 Ticket regalo — pendiente de contrato fiscal.";
 
-    // ═══════════ Complete sale (F12 Cobrar) ═══════════
-
     [RelayCommand(CanExecute = nameof(CanCompleteSale))]
     private async Task CompleteSaleAsync()
     {
@@ -367,7 +353,7 @@ public partial class PosCartViewModel : ObservableObject
                     IsError = true;
                     StatusMessage = FormatRejection(result);
                     VeriFactuEstado = "Rechazado";
-                    VeriFactuRespuesta = result.RejectionCode?.ToString() ?? "Rejected";
+                    VeriFactuRespuesta = result.RejectionCode.ToString();
                     _currentIdempotencyKey = Guid.NewGuid();
                     break;
             }
