@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Lumina.Contracts.Auth;
+using Lumina.Contracts.Pos;
 using Lumina.Pos.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,9 +12,9 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Resolve IAuthService from the composition root (App.Services).
-        // Never construct AuthService or other application services here.
+        // Resolve from composition root only — never construct application services here.
         var auth = App.Services.GetRequiredService<IAuthService>();
-        DataContext = new ShellViewModel(auth);
+        var pos = App.Services.GetRequiredService<IPosSaleService>();
+        DataContext = new ShellViewModel(auth, pos);
     }
 }
