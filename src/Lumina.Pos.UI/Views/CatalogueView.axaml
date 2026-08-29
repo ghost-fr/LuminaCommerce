@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.CatalogueView"
+             x:DataType="vm:CatalogueViewModel">
+
+    <DockPanel Margin="16">
+        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
+            <TextBlock Text="Product catalogue" FontSize="20" FontWeight="SemiBold" />
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding SearchText}"
+                         Watermark="Search name or barcode…"
+                         MinHeight="36" />
+                <Button Grid.Column="1"
+                        Content="Search"
+                        Command="{Binding SearchCommand}"
+                        Margin="8,0,0,0"
+                        Padding="16,8"
+                        IsEnabled="{Binding !IsBusy}" />
+            </Grid>
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#A0A0B0" />
+        </StackPanel>
+
+        <DataGrid ItemsSource="{Binding Products}"
+                  IsReadOnly="True"
+                  AutoGenerateColumns="False"
+                  GridLinesVisibility="Horizontal"
+                  BorderThickness="1"
+                  BorderBrush="#333">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="140" />
+                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                <DataGridTextColumn Header="Price" Binding="{Binding PriceDisplay}" Width="140" />
+                <DataGridTextColumn Header="VAT" Binding="{Binding VatRate}" Width="80" />
+                <DataGridCheckBoxColumn Header="Promo" Binding="{Binding HasActivePromotion}" Width="70" />
+            </DataGrid.Columns>
+        </DataGrid>
+    </DockPanel>
+</UserControl>
