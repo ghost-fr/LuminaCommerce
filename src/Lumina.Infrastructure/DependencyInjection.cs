@@ -5,6 +5,7 @@ using Lumina.Application.Ports;
 using Lumina.Contracts.Auth;
 using Lumina.Contracts.Catalogue;
 using Lumina.Contracts.Pos;
+using Lumina.Contracts.Stock;
 using Lumina.Fiscal.HashChain;
 using Lumina.Infrastructure.Persistence;
 using Lumina.Infrastructure.Persistence.Repositories;
@@ -15,10 +16,7 @@ using Microsoft.Extensions.DependencyInjection;
 namespace Lumina.Infrastructure;
 
 /// <summary>
-/// Single source of truth for wiring the backend into a DI container. Called
-/// identically from both Lumina.Pos.UI and Lumina.BackOffice.UI's composition
-/// roots (App.axaml.cs) so the two apps never drift on what's registered — if a
-/// new backend service needs registering, add it here once, not in both apps.
+/// Single source of truth for wiring the backend into a DI container.
 /// </summary>
 public static class DependencyInjection
 {
@@ -42,8 +40,9 @@ public static class DependencyInjection
         services.AddScoped<IRegisterRepository, RegisterRepository>();
         services.AddScoped<IVeriFactuChainStore, VeriFactuChainStore>();
 
-        // Phase 3 placeholder — swap for the real Phase 4 stock ledger when it lands
+        // Phase 3 placeholder stock check for sales; Phase 4 UI uses IStockService stub
         services.AddScoped<IStockAvailabilityChecker, PlaceholderStockAvailabilityChecker>();
+        services.AddScoped<IStockService, StubStockService>();
 
         // Fiscal — stateless, safe as singletons
         services.AddSingleton<HashChainService>();
@@ -53,9 +52,6 @@ public static class DependencyInjection
         // Application services
         services.AddScoped<PricingService>();
 
-        // PosSaleService depends on the concrete ProductCatalogueService (uses
-        // FindByBarcodeInternalAsync). Register concrete first, then expose the
-        // same instance via IProductCatalogueService for UI/other consumers.
         services.AddScoped<ProductCatalogueService>();
         services.AddScoped<IProductCatalogueService>(sp =>
             sp.GetRequiredService<ProductCatalogueService>());
