@@ -18,33 +18,54 @@ public sealed class ProductCatalogueService : IProductCatalogueService
 {
     private readonly IProductRepository _products;
     private readonly PricingService _pricing;
+    private readonly ICurrentTenantProvider _tenant;
 
-    public ProductCatalogueService(IProductRepository products, PricingService pricing)
+    public ProductCatalogueService(
+        IProductRepository products,
+        PricingService pricing,
+        ICurrentTenantProvider tenant)
     {
         _products = products;
         _pricing = pricing;
+        _tenant = tenant;
     }
 
-    public Task<ProductSearchResult> SearchAsync(ProductSearchRequest request, CancellationToken ct = default)
+    public async Task<ProductSearchResult> SearchAsync(
+        ProductSearchRequest request, CancellationToken ct = default)
     {
-        // NOTE: tenant scoping omitted here pending the same ICurrentTenantProvider
-        // wiring used by AuthService — this signature will take/derive TenantId once
-        // the composition root passes it through. Flagged, not silently assumed.
-        throw new NotImplementedException(
-            "SearchAsync requires ICurrentTenantProvider wiring at the composition root " +
-            "(same pattern as AuthService) — implement alongside App.axaml.cs DI setup.");
+        var tenantId = _tenant.TenantId;
+        var page = request.Page < 1 ? 1 : request.Page;
+        var pageSize = request.PageSize < 1 ? 50 : Math.Min(request.PageSize, 200);
+
+        var (items, total) = await _products.SearchAsync(
+            tenantId, request.Query, page, pageSize, ct);
+
+        var summaries = new List<IProductSummary>(items.Count);
+        var now = DateTimeOffset.UtcNow;
+        foreach (var product in items)
+        {
+            if (!product.IsActive) continue;
+            var price = await _pricing.ResolveAsync(product, now, ct);
+            summaries.Add(new ProductSummary
+            {
+                ProductId = product.Id,
+                Barcode = product.Barcode,
+                Name = product.Name,
+                CurrentPrice = price.CurrentPrice,
+                OriginalPrice = price.OriginalPrice,
+                VatRate = price.VatRate,
+                HasActivePromotion = price.HasActivePromotion
+            });
+        }
+
+        return new ProductSearchResult(summaries, total, page, pageSize);
     }
 
-    public Task<IProductSummary?> FindByBarcodeAsync(string barcode, CancellationToken ct = default)
-    {
-        throw new NotImplementedException(
-            "FindByBarcodeAsync requires ICurrentTenantProvider wiring — see SearchAsync note.");
-    }
+    public Task<IProductSummary?> FindByBarcodeAsync(string barcode, CancellationToken ct = default) =>
+        FindByBarcodeInternalAsync(_tenant.TenantId, barcode, ct);
 
     /// <summary>
-    /// Internal helper actually exercised by tests and by PosSaleService — takes an
-    /// explicit tenantId until the composition-root wiring above lands, so pricing
-    /// logic itself is fully testable now rather than blocked on DI plumbing.
+    /// Used by PosSaleService with an explicit tenantId (same process, shared provider).
     /// </summary>
     internal async Task<IProductSummary?> FindByBarcodeInternalAsync(
         Guid tenantId, string barcode, CancellationToken ct = default)
