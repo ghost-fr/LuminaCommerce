@@ -1,6 +1,8 @@
 using Avalonia.Controls;
 using Lumina.Contracts.Auth;
+using Lumina.Contracts.Catalogue;
 using Lumina.Contracts.Pos;
+using Lumina.Contracts.Stock;
 using Lumina.Pos.UI.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,9 +14,10 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
 
-        // Resolve from composition root only — never construct application services here.
         var auth = App.Services.GetRequiredService<IAuthService>();
         var pos = App.Services.GetRequiredService<IPosSaleService>();
-        DataContext = new ShellViewModel(auth, pos);
+        var catalogue = App.Services.GetRequiredService<IProductCatalogueService>();
+        var stock = App.Services.GetRequiredService<IStockService>();
+        DataContext = new ShellViewModel(auth, pos, catalogue, stock);
     }
 }
