@@ -5,9 +5,10 @@
         x:Class="Lumina.Pos.UI.MainWindow"
         x:DataType="vm:ShellViewModel"
         Title="Lumina POS"
-        Width="1200" Height="780"
+        Width="1440" Height="900"
+        MinWidth="1200" MinHeight="720"
         WindowStartupLocation="CenterScreen"
-        Background="#12121A">
+        Background="#0B0E14">
 
     <Window.DataTemplates>
         <DataTemplate DataType="vm:LoginViewModel">
@@ -29,41 +30,51 @@
 
     <DockPanel>
         <Border DockPanel.Dock="Top"
-                Background="#1A1A28"
-                Padding="12,8"
+                Background="#12161F"
+                Padding="14,10"
                 IsVisible="{Binding IsLoggedIn}">
             <Grid ColumnDefinitions="Auto,*,Auto,Auto">
                 <TextBlock Text="Lumina POS"
                            FontWeight="Bold"
+                           FontSize="15"
                            VerticalAlignment="Center"
-                           Foreground="White"
-                           Margin="0,0,24,0" />
+                           Foreground="#F9FAFB"
+                           Margin="0,0,20,0" />
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                    <Button Content="Register"
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                    <Button Content="Caja / TPV"
                             Command="{Binding NavigateRegisterCommand}"
                             IsVisible="{Binding CanOperateRegister}"
-                            Padding="12,6" />
-                    <Button Content="Catalogue"
+                            Padding="14,8"
+                            FontWeight="SemiBold"
+                            Background="#1E293B"
+                            Foreground="#F3F4F6" />
+                    <Button Content="Catálogo"
                             Command="{Binding NavigateCatalogueCommand}"
                             IsVisible="{Binding CanBrowseCatalogue}"
-                            Padding="12,6" />
+                            Padding="14,8"
+                            Background="#1E293B"
+                            Foreground="#D1D5DB" />
                     <Button Content="Stock"
                             Command="{Binding NavigateStockCommand}"
                             IsVisible="{Binding CanManageStock}"
-                            Padding="12,6" />
+                            Padding="14,8"
+                            Background="#1E293B"
+                            Foreground="#D1D5DB" />
                 </StackPanel>
 
                 <TextBlock Grid.Column="2"
                            Text="{Binding StatusText}"
                            VerticalAlignment="Center"
-                           Foreground="#A0A0B0"
+                           Foreground="#9CA3AF"
                            Margin="0,0,16,0" />
 
                 <Button Grid.Column="3"
-                        Content="Sign out"
+                        Content="Cerrar sesión"
                         Command="{Binding LogoutCommand}"
-                        Padding="12,6" />
+                        Padding="14,8"
+                        Background="#374151"
+                        Foreground="White" />
             </Grid>
         </Border>
 
