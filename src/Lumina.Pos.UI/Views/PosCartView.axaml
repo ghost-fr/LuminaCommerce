@@ -6,10 +6,11 @@
 
     <Grid ColumnDefinitions="2*,*" Margin="16" RowDefinitions="Auto,*,Auto">
 
-        <!-- Scan bar -->
+        <!-- Scan bar — primary focus for keyboard / scanner -->
         <Border Grid.ColumnSpan="2" Background="#1A1A28" CornerRadius="8" Padding="12" Margin="0,0,0,12">
             <Grid ColumnDefinitions="*,Auto,Auto,Auto">
-                <TextBox Watermark="Barcode / SKU"
+                <TextBox x:Name="BarcodeBox"
+                         Watermark="Barcode / SKU (scanner or type + Enter)"
                          Text="{Binding BarcodeInput}"
                          FontSize="18"
                          MinHeight="44"
@@ -25,13 +26,12 @@
                         Content="Add"
                         Command="{Binding AddLineCommand}"
                         Margin="8,0,0,0"
-                        MinWidth="80"
-                        Classes="accent" />
+                        MinWidth="80" />
                 <Button Grid.Column="3"
-                        Content="New sale"
+                        Content="New sale (F9)"
                         Command="{Binding NewSaleCommand}"
                         Margin="8,0,0,0"
-                        MinWidth="90" />
+                        MinWidth="110" />
             </Grid>
         </Border>
 
@@ -53,7 +53,7 @@
                                            VerticalAlignment="Center"
                                            Margin="12,0" />
                                 <TextBlock Grid.Column="2"
-                                           Text="{Binding LineTotal, StringFormat='{}{0:C}'}"
+                                           Text="{Binding LineTotal, StringFormat='{}{0:N2}'}"
                                            VerticalAlignment="Center"
                                            FontWeight="SemiBold"
                                            Margin="12,0" />
@@ -61,7 +61,8 @@
                                         Content="✕"
                                         Command="{Binding $parent[UserControl].((vm:PosCartViewModel)DataContext).RemoveLineCommand}"
                                         CommandParameter="{Binding}"
-                                        Padding="8,4" />
+                                        Padding="8,4"
+                                        ToolTip.Tip="Remove line (reversible)" />
                             </Grid>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
@@ -69,53 +70,70 @@
             </DockPanel>
         </Border>
 
-        <!-- Totals + tender + ticket -->
+        <!-- Totals + tender + irreversible charge -->
         <Border Grid.Row="1" Grid.Column="1" Background="#1A1A28" CornerRadius="8" Padding="16">
             <StackPanel Spacing="10">
                 <TextBlock Text="Totals" FontWeight="SemiBold" />
+                <!-- Amounts from backend only -->
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Subtotal" />
-                    <TextBlock Grid.Column="1" Text="{Binding Subtotal, StringFormat='{}{0:C}'}" />
+                    <TextBlock Grid.Column="1" Text="{Binding Subtotal, StringFormat='{}{0:N2}'}" />
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="VAT" />
-                    <TextBlock Grid.Column="1" Text="{Binding VatTotal, StringFormat='{}{0:C}'}" />
+                    <TextBlock Grid.Column="1" Text="{Binding VatTotal, StringFormat='{}{0:N2}'}" />
                 </Grid>
                 <Grid ColumnDefinitions="*,Auto">
                     <TextBlock Text="Total" FontWeight="Bold" FontSize="18" />
-                    <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='{}{0:C}'}" FontWeight="Bold" FontSize="18" />
+                    <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='{}{0:N2}'}" FontWeight="Bold" FontSize="18" />
                 </Grid>
 
                 <Separator Margin="0,8" />
 
                 <TextBlock Text="Tender" FontWeight="SemiBold" />
-                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
                     <TextBlock Text="Cash" VerticalAlignment="Center" Margin="0,0,8,0" />
-                    <NumericUpDown Grid.Column="1" Value="{Binding TenderCash}" Minimum="0" FormatString="C2" />
+                    <NumericUpDown Grid.Column="1" Value="{Binding TenderCash}" Minimum="0" FormatString="N2" />
                     <TextBlock Grid.Row="1" Text="Card" VerticalAlignment="Center" Margin="0,8,8,0" />
-                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding TenderCard}" Minimum="0" FormatString="C2" Margin="0,8,0,0" />
+                    <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding TenderCard}" Minimum="0" FormatString="N2" Margin="0,8,0,0" />
+                    <Button Grid.Row="2" Grid.ColumnSpan="2"
+                            Content="Exact cash"
+                            Command="{Binding ExactCashCommand}"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Stretch" />
                 </Grid>
 
-                <Button Content="Complete sale"
+                <!-- Irreversible: visual weight distinct from tender buttons -->
+                <Button Content="COBRAR / Complete sale (F8)"
                         Command="{Binding CompleteSaleCommand}"
                         HorizontalAlignment="Stretch"
                         HorizontalContentAlignment="Center"
-                        MinHeight="48"
+                        MinHeight="52"
                         FontSize="16"
-                        FontWeight="SemiBold"
-                        Classes="accent"
-                        Margin="0,12,0,0" />
+                        FontWeight="Bold"
+                        Background="#1B7A4A"
+                        Foreground="White"
+                        Margin="0,12,0,0"
+                        ToolTip.Tip="Commits the sale and fiscal record — cannot be undone from this screen" />
 
-                <!-- Ticket result -->
+                <!-- Status first, then opaque ticket tokens as received -->
                 <Border IsVisible="{Binding SaleCompleted}"
                         Background="#1E3A2F"
                         CornerRadius="8"
                         Padding="12"
                         Margin="0,8,0,0">
                     <StackPanel Spacing="6">
-                        <TextBlock Text="Ticket" FontWeight="Bold" Foreground="#6BCB77" />
-                        <TextBlock Text="{Binding TicketNumber}" FontSize="20" FontWeight="SemiBold" />
-                        <TextBlock Text="QR payload (render as QR on printer):" Foreground="#A0A0B0" FontSize="11" />
+                        <TextBlock Text="{Binding SaleStatusLabel}"
+                                   FontWeight="Bold"
+                                   FontSize="16"
+                                   Foreground="#6BCB77" />
+                        <TextBlock Text="{Binding TicketNumber}"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   FontFamily="Consolas, Courier New, monospace" />
+                        <TextBlock Text="QR payload (exact backend string — render only)"
+                                   Foreground="#A0A0B0"
+                                   FontSize="11" />
                         <TextBlock Text="{Binding QrPayload}"
                                    TextWrapping="Wrap"
                                    FontFamily="Consolas, Courier New, monospace"
@@ -125,15 +143,22 @@
             </StackPanel>
         </Border>
 
-        <!-- Status bar -->
+        <!-- Status + next action -->
         <Border Grid.Row="2" Grid.ColumnSpan="2"
                 Margin="0,12,0,0"
                 Padding="12,8"
                 CornerRadius="6"
                 Background="#1E2A3A">
-            <TextBlock Text="{Binding StatusMessage}"
-                       TextWrapping="Wrap"
-                       Foreground="#A0C4FF" />
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding StatusMessage}"
+                           TextWrapping="Wrap"
+                           FontWeight="SemiBold"
+                           Foreground="#E8F0FF" />
+                <TextBlock Text="{Binding StatusHint}"
+                           TextWrapping="Wrap"
+                           Foreground="#A0C4FF"
+                           FontSize="12" />
+            </StackPanel>
         </Border>
     </Grid>
 </UserControl>
