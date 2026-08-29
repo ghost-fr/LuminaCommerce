@@ -7,13 +7,8 @@ using Lumina.Contracts.Pos;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// POS cart + tender + complete-sale screen. Depends only on <see cref="IPosSaleService"/>
-/// and the current session. Never constructs application services directly.
-///
-/// CONTRACT GAP (backend follow-up): there is no CreateCart / open-register method on
-/// IPosSaleService yet. CartId and RegisterId must be supplied by the shell once those
-/// exist (or via SeedDev for local testing). Until then NewCart creates a local Guid
-/// and the first AddLine will fail with a clear message if the cart was never persisted.
+/// POS cart + tender + complete-sale. Money amounts only from backend summaries.
+/// UX: keyboard-first, irreversible Complete Sale distinct, rejections with next action.
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
@@ -35,21 +30,21 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private decimal _tenderCard;
 
     [ObservableProperty] private string? _statusMessage;
+    [ObservableProperty] private string? _statusHint;
     [ObservableProperty] private bool _isError;
     [ObservableProperty] private bool _isBusy;
 
     [ObservableProperty] private bool _saleCompleted;
+    [ObservableProperty] private string? _saleStatusLabel;
     [ObservableProperty] private string? _ticketNumber;
     [ObservableProperty] private string? _qrPayload;
 
-    /// <summary>Idempotency key for the current tender submission attempt.</summary>
     private Guid _currentIdempotencyKey = Guid.NewGuid();
 
     public PosCartViewModel(IPosSaleService pos, IUserSession session, Guid? registerId = null)
     {
         _pos = pos;
         _session = session;
-        // RegisterId: until open-register is on the contract, shell/SeedDev must pass one.
         RegisterId = registerId ?? Guid.Empty;
         StartNewCart();
     }
@@ -61,8 +56,9 @@ public partial class PosCartViewModel : ObservableObject
         Subtotal = VatTotal = Total = 0m;
         TenderCash = TenderCard = 0m;
         SaleCompleted = false;
-        TicketNumber = QrPayload = null;
-        StatusMessage = "New cart. Scan or type a barcode to add items.";
+        SaleStatusLabel = TicketNumber = QrPayload = null;
+        StatusMessage = "Ready — scan barcode or type SKU (Enter to add).";
+        StatusHint = "F2 focus scan · F8 complete sale · F9 new sale";
         IsError = false;
         _currentIdempotencyKey = Guid.NewGuid();
     }
@@ -73,6 +69,7 @@ public partial class PosCartViewModel : ObservableObject
         if (IsBusy) return;
         IsBusy = true;
         StatusMessage = null;
+        StatusHint = null;
         IsError = false;
 
         try
@@ -85,12 +82,15 @@ public partial class PosCartViewModel : ObservableObject
             BarcodeInput = string.Empty;
             QuantityInput = 1m;
             StatusMessage = "Line added.";
+            StatusHint = "Continue scanning, or F8 when ready to charge.";
         }
         catch (Exception ex)
         {
-            // ProductNotFoundException and missing-cart both surface here.
             IsError = true;
-            StatusMessage = ex.Message;
+            StatusMessage = "Product not found or cart not ready.";
+            StatusHint = "Check barcode · ensure cart is persisted (CreateCart gap) · try again.";
+            if (!string.IsNullOrWhiteSpace(ex.Message))
+                StatusMessage = ex.Message;
         }
         finally
         {
@@ -114,12 +114,14 @@ public partial class PosCartViewModel : ObservableObject
                 new RemoveLineRequest(line.ProductId, line.Quantity));
             ApplySummary(summary);
             StatusMessage = "Line removed.";
+            StatusHint = null;
             IsError = false;
         }
         catch (Exception ex)
         {
             IsError = true;
             StatusMessage = ex.Message;
+            StatusHint = "Retry remove, or start a new sale (F9).";
         }
         finally
         {
@@ -134,13 +136,12 @@ public partial class PosCartViewModel : ObservableObject
         if (IsBusy || SaleCompleted) return;
         IsBusy = true;
         StatusMessage = null;
+        StatusHint = null;
         IsError = false;
 
         try
         {
             var tenders = BuildTenders();
-            // Reuse the same key on retry of THIS attempt (timeout/drop).
-            // Only StartNewCart() / a Rejected-then-adjust path mints a new key.
             var request = new CompleteSaleRequest(
                 RegisterId,
                 CustomerId: null,
@@ -153,30 +154,30 @@ public partial class PosCartViewModel : ObservableObject
             {
                 case CompleteSaleStatus.Success:
                 case CompleteSaleStatus.SuccessPendingSubmission:
-                    // Both treated as success for ticket printing per CONTRACTS.md §2.2
                     SaleCompleted = true;
+                    // Opaque tokens: display exactly as backend sent (no case transforms).
                     TicketNumber = result.TicketNumber;
                     QrPayload = result.QrPayload;
-                    StatusMessage = result.Status == CompleteSaleStatus.SuccessPendingSubmission
-                        ? $"Sale committed (ticket {result.TicketNumber}). AEAT submission pending."
-                        : $"Sale complete — ticket {result.TicketNumber}";
+                    SaleStatusLabel = result.Status == CompleteSaleStatus.SuccessPendingSubmission
+                        ? "Committed — AEAT submission pending"
+                        : "Accepted";
+                    StatusMessage = SaleStatusLabel;
+                    StatusHint = "Print/ticket from TicketNumber + QR. F9 for next customer.";
                     IsError = false;
                     break;
 
                 case CompleteSaleStatus.Rejected:
-                    // MUST NOT clear cart, MUST NOT print
                     IsError = true;
-                    StatusMessage = FormatRejection(result);
-                    // New attempt after operator adjusts → new idempotency key
+                    ApplyRejection(result);
                     _currentIdempotencyKey = Guid.NewGuid();
                     break;
             }
         }
         catch (Exception ex)
         {
-            // Timeout / unknown — treat as failed, never as success. Same key kept for retry.
             IsError = true;
-            StatusMessage = $"Sale could not be confirmed: {ex.Message}. Retry with the same cart (idempotent).";
+            StatusMessage = "Sale could not be confirmed.";
+            StatusHint = "Do not print a ticket. Retry Complete sale — same cart, idempotent key kept. " + ex.Message;
         }
         finally
         {
@@ -195,6 +196,62 @@ public partial class PosCartViewModel : ObservableObject
         NotifyCommands();
     }
 
+    /// <summary>Fills cash tender to exact total (keyboard-friendly exact-pay).</summary>
+    [RelayCommand]
+    private void ExactCash()
+    {
+        if (SaleCompleted) return;
+        TenderCash = Total;
+        TenderCard = 0;
+    }
+
+    private void ApplyRejection(CompleteSaleResult result)
+    {
+        switch (result.RejectionCode)
+        {
+            case RejectionCode.StockUnavailable:
+                StatusMessage = "Insufficient stock for one or more items.";
+                StatusHint = "Reduce quantity or remove the line, then try Complete sale again.";
+                break;
+            case RejectionCode.PaymentValidationFailed:
+                StatusMessage = "Payment does not match the total.";
+                StatusHint = $"Total is {Total:0.00}. Adjust cash/card so they sum exactly (or use Exact cash).";
+                break;
+            case RejectionCode.RegisterNotOpen:
+                StatusMessage = "Register is not open.";
+                StatusHint = "Open the register (backend/SeedDev), then retry — cart is kept.";
+                break;
+            case RejectionCode.PriceChanged:
+                StatusMessage = "A price changed since the line was added.";
+                StatusHint = "Review lines, remove and re-scan affected items.";
+                break;
+            case RejectionCode.CustomerRequired:
+                StatusMessage = "A customer is required for this sale.";
+                StatusHint = "Attach a customer (when UI lands), then retry.";
+                break;
+            case RejectionCode.DuplicateSubmission:
+                StatusMessage = "This submission was already processed.";
+                StatusHint = "Check ticket history or start a new sale (F9).";
+                break;
+            case RejectionCode.FiscalChainError:
+                StatusMessage = "Fiscal record could not be generated.";
+                StatusHint = "Do not print. Retry once; if it persists, escalate — sale was not committed.";
+                break;
+            default:
+                StatusMessage = "Sale was rejected.";
+                StatusHint = string.IsNullOrWhiteSpace(result.RejectionReason)
+                    ? "Adjust cart or tender and retry."
+                    : result.RejectionReason;
+                break;
+        }
+
+        if (!string.IsNullOrWhiteSpace(result.RejectionReason)
+            && result.RejectionCode is not RejectionCode.None and not RejectionCode.Unknown)
+        {
+            StatusHint = (StatusHint ?? "") + "\nDetail: " + result.RejectionReason;
+        }
+    }
+
     private IReadOnlyList<TenderLine> BuildTenders()
     {
         var list = new List<TenderLine>();
@@ -207,6 +264,7 @@ public partial class PosCartViewModel : ObservableObject
 
     private void ApplySummary(ICartSummary summary)
     {
+        // All money figures from backend only — no client-side recompute.
         Lines.Clear();
         foreach (var l in summary.Lines)
         {
@@ -217,27 +275,8 @@ public partial class PosCartViewModel : ObservableObject
         Subtotal = summary.Subtotal;
         VatTotal = summary.VatTotal;
         Total = summary.Total;
-        // Default tender to exact total for fast cash path
         if (TenderCash == 0 && TenderCard == 0)
             TenderCash = summary.Total;
-    }
-
-    private static string FormatRejection(CompleteSaleResult result)
-    {
-        var primary = result.RejectionCode switch
-        {
-            RejectionCode.StockUnavailable => "Insufficient stock for one or more items.",
-            RejectionCode.PaymentValidationFailed => "Payment amount does not match the total.",
-            RejectionCode.RegisterNotOpen => "Register is not open.",
-            RejectionCode.PriceChanged => "A price changed — review the cart.",
-            RejectionCode.CustomerRequired => "A customer is required for this sale.",
-            RejectionCode.DuplicateSubmission => "This sale was already submitted.",
-            RejectionCode.FiscalChainError => "Fiscal record could not be generated.",
-            _ => "Sale was rejected."
-        };
-        return string.IsNullOrWhiteSpace(result.RejectionReason)
-            ? primary
-            : $"{primary}\n{result.RejectionReason}";
     }
 
     private void NotifyCommands()
@@ -255,7 +294,6 @@ public partial class PosCartViewModel : ObservableObject
     partial void OnRegisterIdChanged(Guid value) => CompleteSaleCommand.NotifyCanExecuteChanged();
 }
 
-/// <summary>UI-bindable projection of ICartLine (ObservableObject for list virtualization).</summary>
 public sealed class CartLineItem
 {
     public Guid ProductId { get; }
