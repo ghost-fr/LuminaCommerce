@@ -1,36 +1,52 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lumina.Contracts.Auth;
+using Lumina.Contracts.Catalogue;
 using Lumina.Contracts.Pos;
+using Lumina.Contracts.Stock;
 using Lumina.Domain.Identity;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Top-level shell for the POS window. Switches between the login screen and the
-/// main (capability-gated) content based on <see cref="IAuthService.CurrentSession"/>.
-/// UI never tracks a separate isLoggedIn flag — the session is the single source of truth.
+/// Top-level shell: login, then capability-gated nav (Register, Catalogue, Stock).
 /// </summary>
 public partial class ShellViewModel : ObservableObject
 {
     private readonly IAuthService _auth;
     private readonly IPosSaleService _pos;
+    private readonly IProductCatalogueService _catalogue;
+    private readonly IStockService _stock;
 
-    [ObservableProperty]
-    private object? _currentContent;
-
-    [ObservableProperty]
-    private string? _statusText;
-
-    [ObservableProperty]
-    private bool _isLoggedIn;
+    [ObservableProperty] private object? _currentContent;
+    [ObservableProperty] private string? _statusText;
+    [ObservableProperty] private bool _isLoggedIn;
+    [ObservableProperty] private string _activeNav = "register";
 
     public LoginViewModel Login { get; }
 
-    public ShellViewModel(IAuthService auth, IPosSaleService pos)
+    public bool CanOperateRegister =>
+        _auth.CurrentSession?.HasCapability(Capabilities.PosOperateRegister) == true;
+
+    public bool CanBrowseCatalogue =>
+        _auth.CurrentSession?.HasCapability(Capabilities.AdminManageCatalogue) == true
+        || CanOperateRegister;
+
+    public bool CanManageStock =>
+        _auth.CurrentSession?.HasCapability(Capabilities.StockAdjust) == true
+        || _auth.CurrentSession?.HasCapability(Capabilities.StockTransfer) == true;
+
+    public ShellViewModel(
+        IAuthService auth,
+        IPosSaleService pos,
+        IProductCatalogueService catalogue,
+        IStockService stock)
     {
         _auth = auth;
         _pos = pos;
+        _catalogue = catalogue;
+        _stock = stock;
         Login = new LoginViewModel(auth, OnLoginSucceeded);
         ShowLogin();
     }
@@ -47,25 +63,51 @@ public partial class ShellViewModel : ObservableObject
         IsLoggedIn = true;
         StatusText = $"{session.DisplayName}  ·  Store {session.StoreId.ToString()[..8]}…";
 
-        // Capability gate: only operators with pos.operate_register get the cart.
-        if (!session.HasCapability(Capabilities.PosOperateRegister))
+        // Prefer register if allowed; otherwise first available screen.
+        if (CanOperateRegister)
+            NavigateRegister();
+        else if (CanBrowseCatalogue)
+            NavigateCatalogue();
+        else if (CanManageStock)
+            NavigateStock();
+        else
         {
             CurrentContent = new MainPlaceholderViewModel(session);
-            StatusText += "  ·  (no pos.operate_register)";
-            return;
+            StatusText += "  ·  (no POS/catalogue/stock capabilities)";
+            ActiveNav = "none";
         }
-
-        // RegisterId: until open-register lands on the contract, pass Guid.Empty.
-        // Complete sale will reject with RegisterNotOpen until SeedDev / backend
-        // provides an open register id (or a future CreateCart+OpenRegister API).
-        CurrentContent = new PosCartViewModel(_pos, session, registerId: null);
     }
 
     private void ShowLogin()
     {
         IsLoggedIn = false;
         StatusText = null;
+        ActiveNav = "login";
         CurrentContent = Login;
+    }
+
+    [RelayCommand]
+    private void NavigateRegister()
+    {
+        if (!CanOperateRegister || _auth.CurrentSession is null) return;
+        ActiveNav = "register";
+        CurrentContent = new PosCartViewModel(_pos, _auth.CurrentSession, registerId: null);
+    }
+
+    [RelayCommand]
+    private void NavigateCatalogue()
+    {
+        if (!CanBrowseCatalogue) return;
+        ActiveNav = "catalogue";
+        CurrentContent = new CatalogueViewModel(_catalogue);
+    }
+
+    [RelayCommand]
+    private void NavigateStock()
+    {
+        if (!CanManageStock || _auth.CurrentSession is null) return;
+        ActiveNav = "stock";
+        CurrentContent = new StockViewModel(_stock, _auth.CurrentSession);
     }
 
     [RelayCommand]
@@ -74,20 +116,8 @@ public partial class ShellViewModel : ObservableObject
         await _auth.LogoutAsync();
         ShowLogin();
     }
-
-    public bool CanOperateRegister =>
-        _auth.CurrentSession?.HasCapability(Capabilities.PosOperateRegister) == true;
-
-    public bool CanOverridePrice =>
-        _auth.CurrentSession?.HasCapability(Capabilities.PosOverridePrice) == true;
-
-    public bool CanVoidSale =>
-        _auth.CurrentSession?.HasCapability(Capabilities.PosVoidSale) == true;
 }
 
-/// <summary>
-/// Shown when the user lacks pos.operate_register (or as fallback).
-/// </summary>
 public partial class MainPlaceholderViewModel : ObservableObject
 {
     public string Greeting { get; }
