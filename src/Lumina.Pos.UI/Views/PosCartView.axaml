@@ -3,13 +3,13 @@
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
              x:Class="Lumina.Pos.UI.Views.PosCartView"
              x:DataType="vm:PosCartViewModel"
-             Background="#0B0E14">
+             Background="#0B1220">
 
   <!-- Professional cashier layout: ticket+depts | total+keypad+pay | receipt strip -->
   <Grid RowDefinitions="48,*,56,28" ColumnDefinitions="*" Margin="6">
 
     <!-- ══ SESSION STRIP ══ -->
-    <Border Grid.Row="0" Background="#12161F" CornerRadius="6" Padding="10,0" Margin="0,0,0,6">
+        <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="10,0" Margin="0,0,0,6">
       <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,20,0">
           <TextBlock Text="TIENDA" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
@@ -27,7 +27,7 @@
           <TextBlock Text="CAJERO" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding CashierLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
-        <Border Grid.Column="5" Background="#1D4ED8" CornerRadius="6" Padding="16,4" MinWidth="160">
+        <Border Grid.Column="5" Background="#1B8FB5" CornerRadius="8" Padding="16,4" MinWidth="160">
           <StackPanel HorizontalAlignment="Right">
             <TextBlock Text="TOTAL" FontSize="10" Foreground="#93C5FD" HorizontalAlignment="Right" />
             <TextBlock Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontSize="26" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right" />
@@ -43,24 +43,24 @@
       <Grid Grid.Column="0" RowDefinitions="Auto,*,140" Margin="0,0,6,0">
 
         <!-- Scan -->
-        <Border Grid.Row="0" Background="#12161F" CornerRadius="6" Padding="8" Margin="0,0,0,6">
+        <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="8" Margin="0,0,0,6">
           <Grid ColumnDefinitions="*,70,88">
             <TextBox Watermark="Escanear o teclear código de barras…"
                      Text="{Binding BarcodeInput}"
                      FontSize="18" MinHeight="48"
-                     Background="#0B0E14" Foreground="#F3F4F6"
+                     Background="#0B1220" Foreground="#F3F4F6"
                      IsEnabled="{Binding !SaleCompleted}" />
             <TextBox Grid.Column="1" Text="{Binding QuantityInput}" Margin="6,0,0,0"
                      FontSize="18" MinHeight="48" HorizontalContentAlignment="Center"
-                     Background="#0B0E14" IsEnabled="{Binding !SaleCompleted}" />
+                     Background="#0B1220" IsEnabled="{Binding !SaleCompleted}" />
             <Button Grid.Column="2" Content="AÑADIR" Command="{Binding AddLineCommand}"
                     Margin="6,0,0,0" MinHeight="48" FontWeight="Bold" FontSize="14"
-                    Background="#2563EB" Foreground="White" />
+                    Background="#1B8FB5" Foreground="White" />
           </Grid>
         </Border>
 
         <!-- Lines table -->
-        <Border Grid.Row="1" Background="#12161F" CornerRadius="6" Margin="0,0,0,6">
+        <Border Grid.Row="1" Background="#121A2B" CornerRadius="8" Margin="0,0,0,6">
           <DockPanel>
             <Border DockPanel.Dock="Top" Background="#1A2030" Padding="10,8">
               <Grid ColumnDefinitions="56,*,72,56,56,80,36">
@@ -101,10 +101,10 @@
         </Border>
 
         <!-- Department / quick product pad (GesVent Secciones / Familias) -->
-        <Border Grid.Row="2" Background="#12161F" CornerRadius="6" Padding="6">
+        <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="6">
           <Grid RowDefinitions="Auto,*">
             <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,6">
-              <Border Background="#2563EB" CornerRadius="4" Padding="10,4">
+              <Border Background="#1B8FB5" CornerRadius="4" Padding="10,4">
                 <TextBlock Text="Directa" FontSize="12" FontWeight="SemiBold" Foreground="White" />
               </Border>
               <Border Background="#1A2030" CornerRadius="4" Padding="10,4">
@@ -134,7 +134,7 @@
       <!-- CENTER: totals + keypad + payment -->
       <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto" Margin="0,0,6,0">
 
-        <Border Grid.Row="0" Background="#12161F" CornerRadius="6" Padding="12" Margin="0,0,0,6">
+        <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="12" Margin="0,0,0,6">
           <StackPanel Spacing="6">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Subtotal" Foreground="#9CA3AF" FontSize="13" />
@@ -151,7 +151,7 @@
             <Border Height="1" Background="#1F2937" Margin="0,2" />
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="18" Foreground="#F9FAFB" />
-              <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontWeight="Bold" FontSize="20" Foreground="#60A5FA" />
+              <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontWeight="Bold" FontSize="20" Foreground="#7DD3E8" />
             </Grid>
             <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
               <TextBlock Text="Efectivo" Foreground="#6B7280" FontSize="12" />
@@ -164,7 +164,7 @@
           </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Background="#0B0E14" BorderBrush="#1F2937" BorderThickness="1" CornerRadius="6" Padding="10,8" Margin="0,0,0,6">
+        <Border Grid.Row="1" Background="#0B1220" BorderBrush="#1F2937" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
           <StackPanel>
             <TextBlock Text="{Binding KeypadTarget}" FontSize="10" Foreground="#6B7280" />
             <TextBlock Text="{Binding KeypadBuffer}" FontSize="28" FontWeight="Bold" Foreground="#F9FAFB" MinHeight="34" />
@@ -238,7 +238,7 @@
           </ScrollViewer>
         </Border>
 
-        <Border Grid.Row="1" Background="#12161F" CornerRadius="6" Padding="10">
+        <Border Grid.Row="1" Background="#121A2B" CornerRadius="8" Padding="10">
           <StackPanel Spacing="4">
             <TextBlock Text="VERI*FACTU" FontWeight="Bold" FontSize="11" Foreground="#93C5FD" />
             <Grid ColumnDefinitions="Auto,*">
@@ -264,7 +264,7 @@
     </Grid>
 
     <!-- ══ FUNCTION BAR ══ -->
-    <Border Grid.Row="2" Background="#12161F" CornerRadius="6" Padding="4" Margin="0,6,0,0">
+    <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="4" Margin="0,6,0,0">
       <UniformGrid Columns="8">
         <Button Content="F3 Clientes" Command="{Binding FunctionClientesCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
         <Button Content="F4 Productos" Command="{Binding FunctionProductosCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
@@ -278,7 +278,7 @@
     </Border>
 
     <!-- ══ STATUS ══ -->
-    <Border Grid.Row="3" Background="#0B0E14" Padding="10,4" Margin="0,4,0,0">
+    <Border Grid.Row="3" Background="#0B1220" Padding="10,4" Margin="0,4,0,0">
       <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#93C5FD" VerticalAlignment="Center" />
     </Border>
   </Grid>

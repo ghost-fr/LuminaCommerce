@@ -1,0 +1,107 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Modern GesVent language: navy rail, paper workspace, teal accent, large till targets. -->
+
+  <Style Selector="Window.gesvent">
+    <Setter Property="FontFamily" Value="Segoe UI, Inter, Arial" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="Background" Value="#E8EEF3" />
+  </Style>
+
+  <Style Selector="Button.navItem">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="14,10" />
+    <Setter Property="Margin" Value="8,2" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="#C9D6E5" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontSize" Value="13" />
+  </Style>
+  <Style Selector="Button.navItem:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#1A3A5C" />
+  </Style>
+  <Style Selector="Button.navItem.selected">
+    <Setter Property="Background" Value="#1A8FB5" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.railGhost">
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Padding" Value="14,9" />
+    <Setter Property="Margin" Value="8,2" />
+    <Setter Property="Background" Value="#16304C" />
+    <Setter Property="Foreground" Value="#E8EEF3" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+  </Style>
+
+  <Style Selector="Button.primary">
+    <Setter Property="Background" Value="#1A8FB5" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+
+  <Style Selector="Button.tillKey">
+    <Setter Property="Background" Value="#1B2433" />
+    <Setter Property="Foreground" Value="#F8FAFC" />
+    <Setter Property="BorderBrush" Value="#2A3344" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.tillKey:pointerover /template/ ContentPresenter">
+    <Setter Property="Background" Value="#243044" />
+  </Style>
+
+  <Style Selector="Button.payCash">
+    <Setter Property="Background" Value="#0F766E" />
+    <Setter Property="Foreground" Value="#ECFDF5" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.payCard">
+    <Setter Property="Background" Value="#1E4A7A" />
+    <Setter Property="Foreground" Value="#DBEAFE" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </Style>
+  <Style Selector="Button.payCharge">
+    <Setter Property="Background" Value="#15803D" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontWeight" Value="Bold" />
+  </Style>
+
+  <Style Selector="TextBox.scan">
+    <Setter Property="Background" Value="#0B1220" />
+    <Setter Property="Foreground" Value="#F8FAFC" />
+    <Setter Property="CaretBrush" Value="#1A8FB5" />
+    <Setter Property="BorderBrush" Value="#2A3A4D" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="MinHeight" Value="48" />
+    <Setter Property="FontSize" Value="18" />
+  </Style>
+
+  <Style Selector="Border.paper">
+    <Setter Property="Background" Value="#FFFFFF" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="BoxShadow" Value="0 8 24 0 #140F2744" />
+  </Style>
+
+  <Style Selector="Border.moduleCard">
+    <Setter Property="Background" Value="#FFFFFF" />
+    <Setter Property="CornerRadius" Value="14" />
+    <Setter Property="Padding" Value="18" />
+    <Setter Property="BoxShadow" Value="0 6 20 0 #120F2744" />
+  </Style>
+</Styles>

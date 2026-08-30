@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.ModulePlaceholderView"
+             x:DataType="vm:ModulePlaceholderViewModel"
+             Background="#E8EEF4">
+    <ScrollViewer>
+        <StackPanel Margin="28" MaxWidth="720" HorizontalAlignment="Left" Spacing="16">
+            <StackPanel Spacing="4">
+                <TextBlock Text="{Binding GesVentKey}" FontSize="12" FontWeight="Bold" Foreground="#1B8FB5" />
+                <TextBlock Text="{Binding ModuleName}" FontSize="26" FontWeight="Bold" Foreground="#0F2744" />
+            </StackPanel>
+            <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="14" Foreground="#5B6B7C" LineHeight="22" />
+            <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#D5E0EA" BorderThickness="1">
+                <StackPanel Spacing="8">
+                    <TextBlock Text="Funciones GesVent a cubrir" FontWeight="SemiBold" Foreground="#0F2744" />
+                    <ItemsControl ItemsSource="{Binding Functions}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#F4F8FB" CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
+                                    <TextBlock Text="{Binding}" FontSize="13" Foreground="#0F2744" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -51,25 +51,25 @@ public partial class LoginViewModel : ObservableObject
                     break;
 
                 case LoginStatus.InvalidCredentials:
-                    ErrorMessage = result.FailureReason ?? "Invalid username or password.";
+                    ErrorMessage = result.FailureReason ?? "Usuario o contraseña incorrectos.";
                     break;
 
                 case LoginStatus.UserInactive:
-                    ErrorMessage = result.FailureReason ?? "This account is inactive. Contact an administrator.";
+                    ErrorMessage = result.FailureReason ?? "Esta cuenta está inactiva. Contacte con un administrador.";
                     break;
 
                 case LoginStatus.StoreNotAssigned:
-                    ErrorMessage = result.FailureReason ?? "No store is assigned to this account.";
+                    ErrorMessage = result.FailureReason ?? "Esta cuenta no tiene tienda asignada.";
                     break;
 
                 default:
-                    ErrorMessage = "Login failed. Please try again.";
+                    ErrorMessage = "No se ha podido entrar. Inténtelo de nuevo.";
                     break;
             }
         }
         catch (Exception ex)
         {
-            ErrorMessage = $"Unexpected error: {ex.Message}";
+            ErrorMessage = $"Error inesperado: {ex.Message}";
         }
         finally
         {

@@ -4,11 +4,11 @@
         xmlns:views="using:Lumina.Pos.UI.Views"
         x:Class="Lumina.Pos.UI.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="Lumina POS"
-        Width="1440" Height="900"
+        Title="Lumina — GesVent"
+        Width="1480" Height="920"
         MinWidth="1200" MinHeight="720"
         WindowStartupLocation="CenterScreen"
-        Background="#0B0E14">
+        Background="#E8EEF4">
 
     <Window.DataTemplates>
         <DataTemplate DataType="vm:LoginViewModel">
@@ -26,60 +26,106 @@
         <DataTemplate DataType="vm:MainPlaceholderViewModel">
             <views:MainPlaceholderView />
         </DataTemplate>
+        <DataTemplate DataType="vm:ModulePlaceholderViewModel">
+            <views:ModulePlaceholderView />
+        </DataTemplate>
     </Window.DataTemplates>
 
-    <DockPanel>
-        <Border DockPanel.Dock="Top"
-                Background="#12161F"
-                Padding="14,10"
-                IsVisible="{Binding IsLoggedIn}">
-            <Grid ColumnDefinitions="Auto,*,Auto,Auto">
-                <TextBlock Text="Lumina POS"
-                           FontWeight="Bold"
-                           FontSize="15"
-                           VerticalAlignment="Center"
-                           Foreground="#F9FAFB"
-                           Margin="0,0,20,0" />
+    <Grid ColumnDefinitions="Auto,*">
+        <!-- GesVent explorer (modern) -->
+        <Border Width="236" Background="#0E2A47" IsVisible="{Binding IsLoggedIn}">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="18,20,18,12">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#7DD3E8" />
+                        <TextBlock Text="GesVent 8" FontSize="20" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Retail · TPV · Back office" FontSize="11" Foreground="#8BA3BD" />
+                    </StackPanel>
+                </Border>
 
-                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
-                    <Button Content="Caja / TPV"
-                            Command="{Binding NavigateRegisterCommand}"
-                            IsVisible="{Binding CanOperateRegister}"
-                            Padding="14,8"
-                            FontWeight="SemiBold"
-                            Background="#1E293B"
-                            Foreground="#F3F4F6" />
-                    <Button Content="Catálogo"
-                            Command="{Binding NavigateCatalogueCommand}"
-                            IsVisible="{Binding CanBrowseCatalogue}"
-                            Padding="14,8"
-                            Background="#1E293B"
-                            Foreground="#D1D5DB" />
-                    <Button Content="Stock"
-                            Command="{Binding NavigateStockCommand}"
-                            IsVisible="{Binding CanManageStock}"
-                            Padding="14,8"
-                            Background="#1E293B"
-                            Foreground="#D1D5DB" />
-                </StackPanel>
+                <Border DockPanel.Dock="Bottom" Padding="12,14" BorderBrush="#1A3F63" BorderThickness="0,1,0,0">
+                    <Button Content="Cerrar sesión"
+                            Command="{Binding LogoutCommand}"
+                            Classes="gv-ghost"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Center"
+                            Padding="12,10" />
+                </Border>
 
-                <TextBlock Grid.Column="2"
-                           Text="{Binding StatusText}"
-                           VerticalAlignment="Center"
-                           Foreground="#9CA3AF"
-                           Margin="0,0,16,0" />
+                <ScrollViewer>
+                    <StackPanel Margin="0,8,0,8">
+                        <TextBlock Text="OPERACIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
+                                   Margin="22,8,12,4" />
+                        <Button Content="Caja / TPV"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsTpvActive}"
+                                Command="{Binding NavigateRegisterCommand}"
+                                IsVisible="{Binding CanOperateRegister}" />
 
-                <Button Grid.Column="3"
-                        Content="Cerrar sesión"
-                        Command="{Binding LogoutCommand}"
-                        Padding="14,8"
-                        Background="#374151"
-                        Foreground="White" />
-            </Grid>
+                        <TextBlock Text="GESTIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
+                                   Margin="22,16,12,4" />
+                        <Button Content="Artículos"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsArticulosActive}"
+                                Command="{Binding NavigateCatalogueCommand}"
+                                IsVisible="{Binding CanBrowseCatalogue}" />
+                        <Button Content="Almacén"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsAlmacenActive}"
+                                Command="{Binding NavigateStockCommand}"
+                                IsVisible="{Binding CanManageStock}" />
+                        <Button Content="Compras"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsComprasActive}"
+                                Command="{Binding NavigateComprasCommand}" />
+                        <Button Content="Ventas"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsVentasActive}"
+                                Command="{Binding NavigateVentasCommand}" />
+
+                        <TextBlock Text="ANÁLISIS" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
+                                   Margin="22,16,12,4" />
+                        <Button Content="Informes"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsInformesActive}"
+                                Command="{Binding NavigateInformesCommand}" />
+                        <Button Content="Tablas generales"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsTablasActive}"
+                                Command="{Binding NavigateTablasCommand}" />
+
+                        <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
+                                   Margin="22,16,12,4" />
+                        <Button Content="Sistema"
+                                Classes="gv-nav"
+                                Classes.selected="{Binding IsSistemaActive}"
+                                Command="{Binding NavigateSistemaCommand}" />
+                    </StackPanel>
+                </ScrollViewer>
+            </DockPanel>
         </Border>
 
-        <ContentControl Content="{Binding CurrentContent}"
-                        HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch" />
-    </DockPanel>
+        <DockPanel Grid.Column="1">
+            <Border DockPanel.Dock="Top"
+                    Background="White"
+                    Padding="20,12"
+                    BorderBrush="#D5E0EA"
+                    BorderThickness="0,0,0,1"
+                    IsVisible="{Binding IsLoggedIn}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel>
+                        <TextBlock Text="{Binding HeaderTitle}" FontSize="18" FontWeight="Bold" Foreground="#0F2744" />
+                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#5B6B7C" Margin="0,2,0,0" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Background="#E8F6FB" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
+                        <TextBlock Text="Claves GesVent · STA" FontSize="11" FontWeight="SemiBold" Foreground="#146F8C" />
+                    </Border>
+                </Grid>
+            </Border>
+
+            <ContentControl Content="{Binding CurrentContent}"
+                            HorizontalAlignment="Stretch"
+                            VerticalAlignment="Stretch" />
+        </DockPanel>
+    </Grid>
 </Window>

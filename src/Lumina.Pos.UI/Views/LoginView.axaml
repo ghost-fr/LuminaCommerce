@@ -2,59 +2,56 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
              x:Class="Lumina.Pos.UI.Views.LoginView"
-             x:DataType="vm:LoginViewModel">
+             x:DataType="vm:LoginViewModel"
+             Background="#0E2A47">
 
-    <Border Background="#1E1E2E"
-            CornerRadius="12"
-            Padding="40"
-            MaxWidth="420"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-        <StackPanel Spacing="16">
-            <TextBlock Text="Lumina POS"
-                       FontSize="28"
-                       FontWeight="Bold"
-                       Foreground="White"
-                       HorizontalAlignment="Center" />
+    <Grid>
+        <Border Width="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="White" CornerRadius="16" Padding="36,32"
+                BoxShadow="0 18 48 0 #40000000">
+            <StackPanel Spacing="14">
+                <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#1B8FB5"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="GesVent"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#0F2744"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Identifíquese para continuar"
+                           Foreground="#5B6B7C"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
 
-            <TextBlock Text="Sign in to continue"
-                       Foreground="#A0A0B0"
-                       HorizontalAlignment="Center"
-                       Margin="0,0,0,12" />
+                <TextBox Watermark="Usuario"
+                         Classes="gv-field"
+                         Text="{Binding Username}"
+                         IsEnabled="{Binding !IsBusy}" />
 
-            <TextBox Watermark="Username"
-                     Text="{Binding Username}"
-                     IsEnabled="{Binding !IsBusy}"
-                     FontSize="16"
-                     MinHeight="40" />
+                <TextBox Watermark="Contraseña"
+                         Text="{Binding Password}"
+                         PasswordChar="•"
+                         Classes="gv-field"
+                         IsEnabled="{Binding !IsBusy}" />
 
-            <TextBox Watermark="Password"
-                     Text="{Binding Password}"
-                     PasswordChar="•"
-                     IsEnabled="{Binding !IsBusy}"
-                     FontSize="16"
-                     MinHeight="40" />
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#C24141"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
-            <TextBlock Text="{Binding ErrorMessage}"
-                       Foreground="#FF6B6B"
-                       TextWrapping="Wrap"
-                       IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
-                       Margin="0,4,0,0" />
+                <Button Content="Entrar"
+                        Command="{Binding LoginCommand}"
+                        Classes="gv-primary"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        MinHeight="44"
+                        FontSize="15"
+                        Margin="0,6,0,0" />
 
-            <Button Content="Sign in"
-                    Command="{Binding LoginCommand}"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Center"
-                    MinHeight="44"
-                    FontSize="16"
-                    FontWeight="SemiBold"
-                    Classes="accent"
-                    Margin="0,8,0,0" />
-
-            <TextBlock Text="Busy…"
-                       IsVisible="{Binding IsBusy}"
-                       Foreground="#A0A0B0"
-                       HorizontalAlignment="Center" />
-        </StackPanel>
-    </Border>
+                <TextBlock Text="Comprobando…"
+                           IsVisible="{Binding IsBusy}"
+                           Foreground="#5B6B7C"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
 </UserControl>

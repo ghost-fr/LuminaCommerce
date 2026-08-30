@@ -2,38 +2,44 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Lumina.Pos.UI.ViewModels"
              x:Class="Lumina.Pos.UI.Views.CatalogueView"
-             x:DataType="vm:CatalogueViewModel">
+             x:DataType="vm:CatalogueViewModel"
+             Background="#E8EEF4">
 
-    <DockPanel Margin="16">
-        <StackPanel DockPanel.Dock="Top" Spacing="8" Margin="0,0,0,12">
-            <TextBlock Text="Product catalogue" FontSize="20" FontWeight="SemiBold" />
+    <DockPanel Margin="20">
+        <StackPanel DockPanel.Dock="Top" Spacing="10" Margin="0,0,0,12">
+            <TextBlock Text="Maestro de artículos · ARTART"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#1B8FB5" />
             <Grid ColumnDefinitions="*,Auto">
                 <TextBox Text="{Binding SearchText}"
-                         Watermark="Search name or barcode…"
-                         MinHeight="36" />
+                         Classes="gv-field"
+                         Watermark="Buscar nombre o código de barras…" />
                 <Button Grid.Column="1"
-                        Content="Search"
+                        Content="Buscar"
+                        Classes="gv-primary"
                         Command="{Binding SearchCommand}"
-                        Margin="8,0,0,0"
-                        Padding="16,8"
+                        Margin="10,0,0,0"
+                        MinWidth="120"
                         IsEnabled="{Binding !IsBusy}" />
             </Grid>
-            <TextBlock Text="{Binding StatusMessage}" Foreground="#A0A0B0" />
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#5B6B7C" FontSize="12" />
         </StackPanel>
 
-        <DataGrid ItemsSource="{Binding Products}"
-                  IsReadOnly="True"
-                  AutoGenerateColumns="False"
-                  GridLinesVisibility="Horizontal"
-                  BorderThickness="1"
-                  BorderBrush="#333">
-            <DataGrid.Columns>
-                <DataGridTextColumn Header="Barcode" Binding="{Binding Barcode}" Width="140" />
-                <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
-                <DataGridTextColumn Header="Price" Binding="{Binding PriceDisplay}" Width="140" />
-                <DataGridTextColumn Header="VAT" Binding="{Binding VatRate}" Width="80" />
-                <DataGridCheckBoxColumn Header="Promo" Binding="{Binding HasActivePromotion}" Width="70" />
-            </DataGrid.Columns>
-        </DataGrid>
+        <Border Background="White" CornerRadius="12" BorderBrush="#D5E0EA" BorderThickness="1" ClipToBounds="True">
+            <DataGrid ItemsSource="{Binding Products}"
+                      IsReadOnly="True"
+                      AutoGenerateColumns="False"
+                      GridLinesVisibility="Horizontal"
+                      BorderThickness="0"
+                      Background="White"
+                      Foreground="#0F2744">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Código" Binding="{Binding Barcode}" Width="150" />
+                    <DataGridTextColumn Header="Descripción" Binding="{Binding Name}" Width="*" />
+                    <DataGridTextColumn Header="PVP" Binding="{Binding PriceDisplay}" Width="120" />
+                    <DataGridTextColumn Header="IVA" Binding="{Binding VatRate}" Width="80" />
+                    <DataGridCheckBoxColumn Header="Oferta" Binding="{Binding HasActivePromotion}" Width="80" />
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
     </DockPanel>
 </UserControl>
