@@ -2,6 +2,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lumina.Contracts.Auth;
 using Lumina.Contracts.Catalogue;
+using Lumina.Contracts.Devices;
 using Lumina.Contracts.Pos;
 using Lumina.Contracts.Stock;
 using Lumina.Domain.Identity;
@@ -10,7 +11,6 @@ namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
 /// GesVent-shaped shell: left explorer modules, capability-gated live screens.
-/// Unimplemented GesVent modules open an honest placeholder — they do not fake data.
 /// </summary>
 public partial class ShellViewModel : ObservableObject
 {
@@ -18,6 +18,8 @@ public partial class ShellViewModel : ObservableObject
     private readonly IPosSaleService _pos;
     private readonly IProductCatalogueService _catalogue;
     private readonly IStockService _stock;
+    private readonly IReceiptPrinter _printer;
+    private readonly IScaleService _scale;
 
     [ObservableProperty] private object? _currentContent;
     [ObservableProperty] private string? _statusText;
@@ -52,12 +54,16 @@ public partial class ShellViewModel : ObservableObject
         IAuthService auth,
         IPosSaleService pos,
         IProductCatalogueService catalogue,
-        IStockService stock)
+        IStockService stock,
+        IReceiptPrinter printer,
+        IScaleService scale)
     {
         _auth = auth;
         _pos = pos;
         _catalogue = catalogue;
         _stock = stock;
+        _printer = printer;
+        _scale = scale;
         Login = new LoginViewModel(auth, OnLoginSucceeded);
         ShowLogin();
     }
@@ -117,7 +123,7 @@ public partial class ShellViewModel : ObservableObject
         if (!CanOperateRegister || _auth.CurrentSession is null) return;
         ActiveNav = "register";
         HeaderTitle = "Caja / TPV";
-        CurrentContent = new PosCartViewModel(_pos, _auth.CurrentSession, registerId: null);
+        CurrentContent = new PosCartViewModel(_pos, _auth.CurrentSession, _printer, _scale, registerId: null);
     }
 
     [RelayCommand]
