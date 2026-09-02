@@ -1,18 +1,22 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lumina.Contracts.Auth;
+using Lumina.Contracts.Devices;
 using Lumina.Contracts.Pos;
 
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Dense supermarket POS workstation (GesVent layout). Phase 1–4 integration tip.
+/// Dense supermarket POS workstation. Phase 8: emulated printer + scale drivers.
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
     private readonly IPosSaleService _pos;
     private readonly IUserSession _session;
+    private readonly IReceiptPrinter _printer;
+    private readonly IScaleService _scale;
 
     [ObservableProperty] private Guid _cartId;
     [ObservableProperty] private Guid _registerId;
@@ -45,6 +49,10 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private string? _qrPayload;
     [ObservableProperty] private DateTimeOffset? _saleCompletedAt;
 
+    [ObservableProperty] private string _printerStatus = "—";
+    [ObservableProperty] private string _scaleStatus = "—";
+    [ObservableProperty] private string? _lastPrintPreview;
+
     [ObservableProperty] private string _veriFactuEstado = "—";
     [ObservableProperty] private string _veriFactuEnviado = "—";
     [ObservableProperty] private string _veriFactuRespuesta = "—";
@@ -55,12 +63,20 @@ public partial class PosCartViewModel : ObservableObject
 
     private Guid _currentIdempotencyKey = Guid.NewGuid();
 
-    public PosCartViewModel(IPosSaleService pos, IUserSession session, Guid? registerId = null)
+    public PosCartViewModel(
+        IPosSaleService pos,
+        IUserSession session,
+        IReceiptPrinter printer,
+        IScaleService scale,
+        Guid? registerId = null)
     {
         _pos = pos;
         _session = session;
+        _printer = printer;
+        _scale = scale;
         RegisterId = registerId ?? Guid.Empty;
         StartNewCart();
+        _ = RefreshDeviceStatusAsync();
     }
 
     public void StartNewCart()
@@ -74,6 +90,7 @@ public partial class PosCartViewModel : ObservableObject
         SaleCompleted = false;
         TicketNumber = QrPayload = null;
         SaleCompletedAt = null;
+        LastPrintPreview = null;
         KeypadBuffer = string.Empty;
         KeypadTarget = KeypadTarget.Quantity;
         QuantityInput = 1m;
@@ -94,6 +111,22 @@ public partial class PosCartViewModel : ObservableObject
         VeriFactuTipo = "F2";
         VeriFactuHash = "—";
         VeriFactuRegistroAnterior = "—";
+    }
+
+    private async Task RefreshDeviceStatusAsync()
+    {
+        try
+        {
+            var p = await _printer.GetStatusAsync();
+            var s = await _scale.GetStatusAsync();
+            PrinterStatus = p.ToString();
+            ScaleStatus = s.ToString();
+        }
+        catch
+        {
+            PrinterStatus = "Error";
+            ScaleStatus = "Error";
+        }
     }
 
     [RelayCommand(CanExecute = nameof(CanAddLine))]
@@ -195,8 +228,7 @@ public partial class PosCartViewModel : ObservableObject
         {
             case KeypadTarget.Quantity:
                 if (decimal.TryParse(KeypadBuffer.Replace(',', '.'),
-                        System.Globalization.NumberStyles.Number,
-                        System.Globalization.CultureInfo.InvariantCulture, out var qty) && qty > 0)
+                        NumberStyles.Number, CultureInfo.InvariantCulture, out var qty) && qty > 0)
                     QuantityInput = qty;
                 break;
             case KeypadTarget.Barcode:
@@ -208,8 +240,7 @@ public partial class PosCartViewModel : ObservableObject
                 break;
             case KeypadTarget.Discount:
                 if (decimal.TryParse(KeypadBuffer.Replace(',', '.'),
-                        System.Globalization.NumberStyles.Number,
-                        System.Globalization.CultureInfo.InvariantCulture, out var dto))
+                        NumberStyles.Number, CultureInfo.InvariantCulture, out var dto))
                     DiscountTotal = dto;
                 break;
         }
@@ -226,7 +257,40 @@ public partial class PosCartViewModel : ObservableObject
         StatusMessage = "F5 Descuento — teclado + Intro.";
     }
     [RelayCommand] private void FunctionObservaciones() => StatusMessage = "F6 Observaciones (pendiente).";
-    [RelayCommand] private void FunctionCajon() => StatusMessage = "F7 Cajón (pendiente).";
+    [RelayCommand] private void FunctionCajon() => StatusMessage = "F7 Cajón — sin puerto de cajón aún (solo impresora/balanza Phase 8).";
+
+    /// <summary>Read emulated scale into Quantity for weighed products.</summary>
+    [RelayCommand]
+    private async Task ReadScaleAsync()
+    {
+        if (SaleCompleted || IsBusy) return;
+        try
+        {
+            var reading = await _scale.ReadWeightAsync();
+            if (reading is null)
+            {
+                IsError = true;
+                StatusMessage = "Balanza: sin lectura.";
+                return;
+            }
+            if (!reading.IsStable)
+            {
+                StatusMessage = $"Balanza inestable: {reading.Kilograms:N3} kg — espere.";
+                return;
+            }
+            QuantityInput = reading.Kilograms;
+            KeypadTarget = KeypadTarget.Quantity;
+            ScaleStatus = "Connected";
+            StatusMessage = $"Peso {reading.Kilograms:N3} kg → cantidad. Escanee artículo.";
+            IsError = false;
+        }
+        catch (Exception ex)
+        {
+            IsError = true;
+            ScaleStatus = "Error";
+            StatusMessage = $"Balanza: {ex.Message}";
+        }
+    }
 
     [RelayCommand]
     private void PayCash()
@@ -279,6 +343,7 @@ public partial class PosCartViewModel : ObservableObject
                     VeriFactuHash = result.QrPayload is { Length: > 16 } ? result.QrPayload[^16..] : (result.QrPayload ?? "—");
                     StatusMessage = $"Ticket {result.TicketNumber}";
                     IsError = false;
+                    await PrintReceiptAsync();
                     break;
                 case CompleteSaleStatus.Rejected:
                     IsError = true;
@@ -296,6 +361,66 @@ public partial class PosCartViewModel : ObservableObject
             VeriFactuEstado = "Error";
         }
         finally { IsBusy = false; NotifyCommands(); }
+    }
+
+    private async Task PrintReceiptAsync()
+    {
+        try
+        {
+            var doc = BuildReceiptDocument();
+            var print = await _printer.PrintAsync(doc);
+            PrinterStatus = (await _printer.GetStatusAsync()).ToString();
+            if (print.Status == PrintStatus.Success)
+            {
+                LastPrintPreview = Lumina.Application.Devices.SimulatedReceiptPrinter.RenderAsPlainText(doc);
+                StatusMessage = $"{StatusMessage} · Impreso (simulado).";
+            }
+            else
+            {
+                StatusMessage = $"{StatusMessage} · Impresión fallida: {print.ErrorMessage}";
+            }
+        }
+        catch (Exception ex)
+        {
+            PrinterStatus = "Error";
+            StatusMessage = $"{StatusMessage} · Impresora: {ex.Message}";
+        }
+    }
+
+    private ReceiptDocument BuildReceiptDocument()
+    {
+        var elements = new List<ReceiptElement>
+        {
+            new ReceiptTextLine(StoreLabel, ReceiptLineAlignment.Center, Bold: true),
+            new ReceiptTextLine($"Cajero: {CashierLabel}", ReceiptLineAlignment.Center),
+            new ReceiptSeparator(),
+            new ReceiptTextLine($"Ticket: {TicketNumber ?? "—"}"),
+            new ReceiptTextLine((SaleCompletedAt ?? DateTimeOffset.Now).ToString("dd/MM/yyyy HH:mm", CultureInfo.InvariantCulture)),
+            new ReceiptSeparator()
+        };
+
+        foreach (var line in Lines)
+        {
+            elements.Add(new ReceiptTextLine(line.ProductName));
+            elements.Add(new ReceiptTextLine(
+                $"{line.Quantity:N2} x {line.UnitPrice:N2} = {line.LineTotal:N2}",
+                ReceiptLineAlignment.Right));
+        }
+
+        elements.Add(new ReceiptSeparator());
+        elements.Add(new ReceiptTextLine($"Subtotal: {Subtotal:N2}", ReceiptLineAlignment.Right));
+        elements.Add(new ReceiptTextLine($"IVA: {VatTotal:N2}", ReceiptLineAlignment.Right));
+        elements.Add(new ReceiptTextLine($"TOTAL: {Total:N2}", ReceiptLineAlignment.Right, Bold: true));
+        elements.Add(new ReceiptSeparator());
+        if (TenderCash > 0)
+            elements.Add(new ReceiptTextLine($"Efectivo: {TenderCash:N2}", ReceiptLineAlignment.Right));
+        if (TenderCard > 0)
+            elements.Add(new ReceiptTextLine($"Tarjeta: {TenderCard:N2}", ReceiptLineAlignment.Right));
+        if (!string.IsNullOrWhiteSpace(QrPayload))
+            elements.Add(new ReceiptQrCode(QrPayload));
+        elements.Add(new ReceiptTextLine("Documento verificable en aeat.es", ReceiptLineAlignment.Center));
+        elements.Add(new ReceiptCut());
+        return new ReceiptDocument(elements);
     }
 
     private bool CanCompleteSale() =>
