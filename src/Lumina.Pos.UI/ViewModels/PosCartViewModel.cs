@@ -15,6 +15,17 @@ namespace Lumina.Pos.UI.ViewModels;
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
+    private sealed class LocalLine
+    {
+        public Guid ProductId { get; set; }
+        public string ProductName { get; set; } = "";
+        public string Barcode { get; set; } = "";
+        public decimal UnitPrice { get; set; }
+        public decimal Quantity { get; set; }
+        public decimal VatRate { get; set; }
+        public decimal LineTotal { get; set; }
+    }
+
     private readonly IPosSaleService _pos;
     private readonly IUserSession _session;
     private readonly IReceiptPrinter _printer;
@@ -180,10 +191,8 @@ public partial class PosCartViewModel : ObservableObject
     {
         if (string.IsNullOrWhiteSpace(code) || qty <= 0) return;
 
-        // Demo pricing: deterministic from barcode digits; name = code
         var price = DemoUnitPrice(code);
         var vatRate = 0.21m;
-        var unitNet = Math.Round(price / (1 + vatRate), 4);
         var lineTotal = Math.Round(price * qty, 2);
 
         var existing = _localLines.Find(l =>
@@ -427,12 +436,10 @@ public partial class PosCartViewModel : ObservableObject
                         await PrintReceiptAsync();
                         return;
                     }
-                    // Rejected — fall through to local complete for continuous till use
                 }
                 catch { /* local path */ }
             }
 
-            // Local professional complete (no backend phase dependency)
             _localTicketSeq++;
             var ticket = $"T-{DateTime.Now:yyyyMMdd}-{_localTicketSeq:D4}";
             var qr = $"https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=&numserie={ticket}&fecha={DateTime.Now:dd-MM-yyyy}&importe={Total:F2}";
@@ -580,17 +587,6 @@ public partial class PosCartViewModel : ObservableObject
 }
 
 public enum KeypadTarget { Quantity, Price, Discount, Barcode }
-
-file sealed class LocalLine
-{
-    public Guid ProductId { get; set; }
-    public string ProductName { get; set; } = "";
-    public string Barcode { get; set; } = "";
-    public decimal UnitPrice { get; set; }
-    public decimal Quantity { get; set; }
-    public decimal VatRate { get; set; }
-    public decimal LineTotal { get; set; }
-}
 
 public sealed class CartLineItem
 {
