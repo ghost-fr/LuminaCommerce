@@ -1,9 +1,11 @@
 using Lumina.Application.Auth;
 using Lumina.Application.Catalogue;
+using Lumina.Application.Devices;
 using Lumina.Application.Pos;
 using Lumina.Application.Ports;
 using Lumina.Contracts.Auth;
 using Lumina.Contracts.Catalogue;
+using Lumina.Contracts.Devices;
 using Lumina.Contracts.Pos;
 using Lumina.Contracts.Stock;
 using Lumina.Fiscal.HashChain;
@@ -58,6 +60,10 @@ public static class DependencyInjection
 
         services.AddScoped<IAuthService, AuthService>();
         services.AddScoped<IPosSaleService, PosSaleService>();
+
+        // Phase 8 devices — EMULATED. Swap only these two for real hardware.
+        services.AddSingleton<IReceiptPrinter, SimulatedReceiptPrinter>();
+        services.AddSingleton<IScaleService, SimulatedScaleService>();
 
         return services;
     }
