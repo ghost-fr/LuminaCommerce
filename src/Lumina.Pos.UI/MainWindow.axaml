@@ -4,7 +4,7 @@
         xmlns:views="using:Lumina.Pos.UI.Views"
         x:Class="Lumina.Pos.UI.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="Lumina — GesVent"
+        Title="Lumina POS"
         Width="1480" Height="920"
         MinWidth="1200" MinHeight="720"
         WindowStartupLocation="CenterScreen"
@@ -32,24 +32,24 @@
     </Window.DataTemplates>
 
     <Grid ColumnDefinitions="Auto,*">
-        <!-- GesVent explorer (modern) -->
-        <Border Width="236" Background="#0E2A47" IsVisible="{Binding IsLoggedIn}">
+        <Border Width="220" Background="#0E2A47" IsVisible="{Binding IsLoggedIn}">
             <DockPanel>
                 <Border DockPanel.Dock="Top" Padding="18,20,18,12">
                     <StackPanel Spacing="2">
                         <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#7DD3E8" />
-                        <TextBlock Text="GesVent 8" FontSize="20" FontWeight="Bold" Foreground="White" />
-                        <TextBlock Text="Retail · TPV · Back office" FontSize="11" Foreground="#8BA3BD" />
+                        <TextBlock Text="Punto de venta" FontSize="18" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Retail · TPV" FontSize="11" Foreground="#8BA3BD" />
                     </StackPanel>
                 </Border>
 
                 <Border DockPanel.Dock="Bottom" Padding="12,14" BorderBrush="#1A3F63" BorderThickness="0,1,0,0">
                     <Button Content="Cerrar sesión"
                             Command="{Binding LogoutCommand}"
-                            Classes="gv-ghost"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Center"
-                            Padding="12,10" />
+                            Padding="12,10"
+                            Background="#1A3F63"
+                            Foreground="#E0F2FE" />
                 </Border>
 
                 <ScrollViewer>
@@ -57,49 +57,68 @@
                         <TextBlock Text="OPERACIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
                                    Margin="22,8,12,4" />
                         <Button Content="Caja / TPV"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsTpvActive}"
                                 Command="{Binding NavigateRegisterCommand}"
-                                IsVisible="{Binding CanOperateRegister}" />
+                                IsVisible="{Binding CanOperateRegister}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2"
+                                Padding="14,12"
+                                Background="#146F8C"
+                                Foreground="White"
+                                FontWeight="SemiBold" />
 
                         <TextBlock Text="GESTIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
                                    Margin="22,16,12,4" />
                         <Button Content="Artículos"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsArticulosActive}"
                                 Command="{Binding NavigateCatalogueCommand}"
-                                IsVisible="{Binding CanBrowseCatalogue}" />
+                                IsVisible="{Binding CanBrowseCatalogue}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
                         <Button Content="Almacén"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsAlmacenActive}"
                                 Command="{Binding NavigateStockCommand}"
-                                IsVisible="{Binding CanManageStock}" />
+                                IsVisible="{Binding CanManageStock}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
                         <Button Content="Compras"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsComprasActive}"
-                                Command="{Binding NavigateComprasCommand}" />
+                                Command="{Binding NavigateComprasCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
                         <Button Content="Ventas"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsVentasActive}"
-                                Command="{Binding NavigateVentasCommand}" />
+                                Command="{Binding NavigateVentasCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
 
                         <TextBlock Text="ANÁLISIS" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
                                    Margin="22,16,12,4" />
                         <Button Content="Informes"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsInformesActive}"
-                                Command="{Binding NavigateInformesCommand}" />
-                        <Button Content="Tablas generales"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsTablasActive}"
-                                Command="{Binding NavigateTablasCommand}" />
+                                Command="{Binding NavigateInformesCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
+                        <Button Content="Tablas"
+                                Command="{Binding NavigateTablasCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
 
                         <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
                                    Margin="22,16,12,4" />
                         <Button Content="Sistema"
-                                Classes="gv-nav"
-                                Classes.selected="{Binding IsSistemaActive}"
-                                Command="{Binding NavigateSistemaCommand}" />
+                                Command="{Binding NavigateSistemaCommand}"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10"
+                                Background="Transparent" Foreground="#D1E5F5" />
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
@@ -112,15 +131,10 @@
                     BorderBrush="#D5E0EA"
                     BorderThickness="0,0,0,1"
                     IsVisible="{Binding IsLoggedIn}">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel>
-                        <TextBlock Text="{Binding HeaderTitle}" FontSize="18" FontWeight="Bold" Foreground="#0F2744" />
-                        <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#5B6B7C" Margin="0,2,0,0" />
-                    </StackPanel>
-                    <Border Grid.Column="1" Background="#E8F6FB" CornerRadius="8" Padding="12,6" VerticalAlignment="Center">
-                        <TextBlock Text="Claves GesVent · STA" FontSize="11" FontWeight="SemiBold" Foreground="#146F8C" />
-                    </Border>
-                </Grid>
+                <StackPanel>
+                    <TextBlock Text="{Binding HeaderTitle}" FontSize="18" FontWeight="Bold" Foreground="#0F2744" />
+                    <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#5B6B7C" Margin="0,2,0,0" />
+                </StackPanel>
             </Border>
 
             <ContentControl Content="{Binding CurrentContent}"
