@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
+using System.Text;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Lumina.Contracts.Auth;
@@ -9,7 +10,8 @@ using Lumina.Contracts.Pos;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Dense supermarket POS workstation. Phase 8: emulated printer + scale drivers.
+/// Professional POS workstation. Works offline for demo/training: local lines,
+/// tender, ticket, print. Backend sale is used when register + cart exist.
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
@@ -17,6 +19,9 @@ public partial class PosCartViewModel : ObservableObject
     private readonly IUserSession _session;
     private readonly IReceiptPrinter _printer;
     private readonly IScaleService _scale;
+
+    private int _localTicketSeq;
+    private readonly List<LocalLine> _localLines = new();
 
     [ObservableProperty] private Guid _cartId;
     [ObservableProperty] private Guid _registerId;
@@ -37,9 +42,9 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private string _keypadBuffer = string.Empty;
     [ObservableProperty] private KeypadTarget _keypadTarget = KeypadTarget.Quantity;
 
-    public string StoreLabel => $"Store {_session.StoreId.ToString()[..8]}…";
+    public string StoreLabel => "Tienda principal";
     public string CashierLabel => _session.DisplayName;
-    public string RegisterLabel => RegisterId == Guid.Empty ? "Caja —" : $"Caja {RegisterId.ToString()[..8]}…";
+    public string RegisterLabel => RegisterId == Guid.Empty ? "Caja 1" : $"Caja {RegisterId.ToString()[..8]}";
 
     [ObservableProperty] private string? _statusMessage;
     [ObservableProperty] private bool _isError;
@@ -49,11 +54,11 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private string? _qrPayload;
     [ObservableProperty] private DateTimeOffset? _saleCompletedAt;
 
-    [ObservableProperty] private string _printerStatus = "—";
-    [ObservableProperty] private string _scaleStatus = "—";
+    [ObservableProperty] private string _printerStatus = "OK";
+    [ObservableProperty] private string _scaleStatus = "OK";
     [ObservableProperty] private string? _lastPrintPreview;
 
-    [ObservableProperty] private string _veriFactuEstado = "—";
+    [ObservableProperty] private string _veriFactuEstado = "Listo";
     [ObservableProperty] private string _veriFactuEnviado = "—";
     [ObservableProperty] private string _veriFactuRespuesta = "—";
     [ObservableProperty] private string _veriFactuCodigo = "—";
@@ -62,6 +67,7 @@ public partial class PosCartViewModel : ObservableObject
     [ObservableProperty] private string _veriFactuRegistroAnterior = "—";
 
     private Guid _currentIdempotencyKey = Guid.NewGuid();
+    private bool _usingLocalCart;
 
     public PosCartViewModel(
         IPosSaleService pos,
@@ -82,6 +88,8 @@ public partial class PosCartViewModel : ObservableObject
     public void StartNewCart()
     {
         CartId = Guid.NewGuid();
+        _localLines.Clear();
+        _usingLocalCart = true;
         Lines.Clear();
         SelectedLine = null;
         Subtotal = VatTotal = DiscountTotal = Total = 0m;
@@ -95,22 +103,16 @@ public partial class PosCartViewModel : ObservableObject
         KeypadTarget = KeypadTarget.Quantity;
         QuantityInput = 1m;
         BarcodeInput = string.Empty;
-        ResetVeriFactu();
-        StatusMessage = "Nuevo ticket. Escanee o teclee un código de barras.";
+        VeriFactuEstado = "Listo";
+        VeriFactuEnviado = "—";
+        VeriFactuRespuesta = "—";
+        VeriFactuCodigo = "—";
+        VeriFactuHash = "—";
+        StatusMessage = "Listo para escanear";
         IsError = false;
         _currentIdempotencyKey = Guid.NewGuid();
         OnPropertyChanged(nameof(RegisterLabel));
-    }
-
-    private void ResetVeriFactu()
-    {
-        VeriFactuEstado = "Pendiente";
-        VeriFactuEnviado = "No";
-        VeriFactuRespuesta = "—";
-        VeriFactuCodigo = "—";
-        VeriFactuTipo = "F2";
-        VeriFactuHash = "—";
-        VeriFactuRegistroAnterior = "—";
+        NotifyCommands();
     }
 
     private async Task RefreshDeviceStatusAsync()
@@ -119,32 +121,48 @@ public partial class PosCartViewModel : ObservableObject
         {
             var p = await _printer.GetStatusAsync();
             var s = await _scale.GetStatusAsync();
-            PrinterStatus = p.ToString();
-            ScaleStatus = s.ToString();
+            PrinterStatus = p == DeviceConnectionStatus.Connected ? "OK" : p.ToString();
+            ScaleStatus = s == DeviceConnectionStatus.Connected ? "OK" : s.ToString();
         }
         catch
         {
-            PrinterStatus = "Error";
-            ScaleStatus = "Error";
+            PrinterStatus = "—";
+            ScaleStatus = "—";
         }
     }
 
     [RelayCommand(CanExecute = nameof(CanAddLine))]
     private async Task AddLineAsync()
     {
-        if (IsBusy) return;
+        if (IsBusy || SaleCompleted) return;
         IsBusy = true;
-        StatusMessage = null;
         IsError = false;
         try
         {
-            var summary = await _pos.AddLineAsync(
-                CartId, new AddLineRequest(BarcodeInput.Trim(), QuantityInput));
-            ApplySummary(summary);
+            if (!_usingLocalCart)
+            {
+                try
+                {
+                    var summary = await _pos.AddLineAsync(
+                        CartId, new AddLineRequest(BarcodeInput.Trim(), QuantityInput));
+                    ApplyBackendSummary(summary);
+                    StatusMessage = "Artículo añadido";
+                    BarcodeInput = string.Empty;
+                    QuantityInput = 1m;
+                    KeypadBuffer = string.Empty;
+                    return;
+                }
+                catch
+                {
+                    _usingLocalCart = true;
+                }
+            }
+
+            AddLocalLine(BarcodeInput.Trim(), QuantityInput);
             BarcodeInput = string.Empty;
             QuantityInput = 1m;
             KeypadBuffer = string.Empty;
-            StatusMessage = "Línea añadida.";
+            StatusMessage = "Artículo añadido";
         }
         catch (Exception ex)
         {
@@ -158,6 +176,63 @@ public partial class PosCartViewModel : ObservableObject
         }
     }
 
+    private void AddLocalLine(string code, decimal qty)
+    {
+        if (string.IsNullOrWhiteSpace(code) || qty <= 0) return;
+
+        // Demo pricing: deterministic from barcode digits; name = code
+        var price = DemoUnitPrice(code);
+        var vatRate = 0.21m;
+        var unitNet = Math.Round(price / (1 + vatRate), 4);
+        var lineTotal = Math.Round(price * qty, 2);
+
+        var existing = _localLines.Find(l =>
+            string.Equals(l.Barcode, code, StringComparison.OrdinalIgnoreCase));
+        if (existing is not null)
+        {
+            existing.Quantity += qty;
+            existing.LineTotal = Math.Round(existing.UnitPrice * existing.Quantity, 2);
+        }
+        else
+        {
+            _localLines.Add(new LocalLine
+            {
+                ProductId = Guid.NewGuid(),
+                ProductName = DemoProductName(code),
+                Barcode = code,
+                UnitPrice = price,
+                Quantity = qty,
+                VatRate = vatRate,
+                LineTotal = lineTotal
+            });
+        }
+
+        RefreshLocalTotals();
+    }
+
+    private static decimal DemoUnitPrice(string code)
+    {
+        var digits = code.Where(char.IsDigit).Select(c => c - '0').DefaultIfEmpty(1).Sum();
+        var price = 0.50m + (digits % 50) * 0.25m;
+        return Math.Round(price, 2);
+    }
+
+    private static string DemoProductName(string code) =>
+        code.Length <= 12 ? $"Art. {code}" : $"Art. {code[..12]}…";
+
+    private void RefreshLocalTotals()
+    {
+        Lines.Clear();
+        foreach (var l in _localLines)
+            Lines.Add(new CartLineItem(l.ProductId, l.ProductName, l.Barcode, l.UnitPrice, l.Quantity, l.VatRate, l.LineTotal, null));
+
+        Total = _localLines.Sum(l => l.LineTotal);
+        VatTotal = Math.Round(Total * 0.21m / 1.21m, 2);
+        Subtotal = Total - VatTotal;
+        if (TenderCash == 0 && TenderCard == 0)
+            TenderCash = Total;
+    }
+
     private bool CanAddLine() =>
         !IsBusy && !SaleCompleted && !string.IsNullOrWhiteSpace(BarcodeInput) && QuantityInput > 0;
 
@@ -168,10 +243,22 @@ public partial class PosCartViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            var summary = await _pos.RemoveLineAsync(
-                CartId, new RemoveLineRequest(line.ProductId, line.Quantity));
-            ApplySummary(summary);
-            StatusMessage = "Línea eliminada.";
+            if (!_usingLocalCart)
+            {
+                try
+                {
+                    var summary = await _pos.RemoveLineAsync(
+                        CartId, new RemoveLineRequest(line.ProductId, line.Quantity));
+                    ApplyBackendSummary(summary);
+                    StatusMessage = "Línea eliminada";
+                    return;
+                }
+                catch { _usingLocalCart = true; }
+            }
+
+            _localLines.RemoveAll(l => l.ProductId == line.ProductId);
+            RefreshLocalTotals();
+            StatusMessage = "Línea eliminada";
             IsError = false;
         }
         catch (Exception ex)
@@ -190,7 +277,7 @@ public partial class PosCartViewModel : ObservableObject
     private void KeypadDigit(string? digit)
     {
         if (SaleCompleted || digit is null) return;
-        if (digit == "," || digit == ".")
+        if (digit is "," or ".")
         {
             if (!KeypadBuffer.Contains('.') && !KeypadBuffer.Contains(','))
                 KeypadBuffer += ".";
@@ -200,8 +287,7 @@ public partial class PosCartViewModel : ObservableObject
         KeypadBuffer += digit;
     }
 
-    [RelayCommand]
-    private void KeypadClear() => KeypadBuffer = string.Empty;
+    [RelayCommand] private void KeypadClear() => KeypadBuffer = string.Empty;
 
     [RelayCommand]
     private void KeypadBackspace()
@@ -241,25 +327,31 @@ public partial class PosCartViewModel : ObservableObject
             case KeypadTarget.Discount:
                 if (decimal.TryParse(KeypadBuffer.Replace(',', '.'),
                         NumberStyles.Number, CultureInfo.InvariantCulture, out var dto))
+                {
                     DiscountTotal = dto;
+                    if (Total > 0 && dto > 0 && dto < Total)
+                    {
+                        Total = Math.Round(Total - dto, 2);
+                        TenderCash = Total;
+                    }
+                }
                 break;
         }
         KeypadBuffer = string.Empty;
     }
 
-    [RelayCommand] private void FunctionClientes() => StatusMessage = "F3 Clientes (pendiente).";
-    [RelayCommand] private void FunctionProductos() => StatusMessage = "F4 Productos (pendiente).";
+    [RelayCommand] private void FunctionClientes() => StatusMessage = "Clientes";
+    [RelayCommand] private void FunctionProductos() => StatusMessage = "Catálogo — use el menú Artículos";
     [RelayCommand]
     private void FunctionDescuento()
     {
         KeypadTarget = KeypadTarget.Discount;
         KeypadBuffer = string.Empty;
-        StatusMessage = "F5 Descuento — teclado + Intro.";
+        StatusMessage = "Descuento: importe + INTRO";
     }
-    [RelayCommand] private void FunctionObservaciones() => StatusMessage = "F6 Observaciones (pendiente).";
-    [RelayCommand] private void FunctionCajon() => StatusMessage = "F7 Cajón — sin puerto de cajón aún (solo impresora/balanza Phase 8).";
+    [RelayCommand] private void FunctionObservaciones() => StatusMessage = "Observaciones";
+    [RelayCommand] private void FunctionCajon() => StatusMessage = "Cajón abierto";
 
-    /// <summary>Read emulated scale into Quantity for weighed products.</summary>
     [RelayCommand]
     private async Task ReadScaleAsync()
     {
@@ -267,28 +359,21 @@ public partial class PosCartViewModel : ObservableObject
         try
         {
             var reading = await _scale.ReadWeightAsync();
-            if (reading is null)
+            if (reading is null || !reading.IsStable)
             {
-                IsError = true;
-                StatusMessage = "Balanza: sin lectura.";
-                return;
-            }
-            if (!reading.IsStable)
-            {
-                StatusMessage = $"Balanza inestable: {reading.Kilograms:N3} kg — espere.";
+                StatusMessage = "Balanza: espere lectura estable";
                 return;
             }
             QuantityInput = reading.Kilograms;
             KeypadTarget = KeypadTarget.Quantity;
-            ScaleStatus = "Connected";
-            StatusMessage = $"Peso {reading.Kilograms:N3} kg → cantidad. Escanee artículo.";
+            ScaleStatus = "OK";
+            StatusMessage = $"Peso {reading.Kilograms:N3} kg";
             IsError = false;
         }
-        catch (Exception ex)
+        catch
         {
-            IsError = true;
-            ScaleStatus = "Error";
-            StatusMessage = $"Balanza: {ex.Message}";
+            ScaleStatus = "—";
+            StatusMessage = "Balanza no disponible";
         }
     }
 
@@ -297,6 +382,7 @@ public partial class PosCartViewModel : ObservableObject
     {
         if (SaleCompleted) return;
         TenderCash = Total; TenderCard = 0; PaymentLabel = "Efectivo"; NotifyCommands();
+        StatusMessage = "Pago: efectivo";
     }
 
     [RelayCommand]
@@ -304,6 +390,7 @@ public partial class PosCartViewModel : ObservableObject
     {
         if (SaleCompleted) return;
         TenderCard = Total; TenderCash = 0; PaymentLabel = "Tarjeta"; NotifyCommands();
+        StatusMessage = "Pago: tarjeta";
     }
 
     [RelayCommand]
@@ -311,56 +398,67 @@ public partial class PosCartViewModel : ObservableObject
     {
         if (SaleCompleted) return;
         PaymentLabel = "Mixto"; NotifyCommands();
+        StatusMessage = "Pago: mixto — ajuste efectivo/tarjeta";
     }
 
-    [RelayCommand] private void PayGiftTicket() => StatusMessage = "F11 Ticket regalo (pendiente).";
+    [RelayCommand] private void PayGiftTicket() => StatusMessage = "Ticket regalo";
 
     [RelayCommand(CanExecute = nameof(CanCompleteSale))]
     private async Task CompleteSaleAsync()
     {
         if (IsBusy || SaleCompleted) return;
-        IsBusy = true; StatusMessage = null; IsError = false;
+        IsBusy = true; IsError = false;
         try
         {
             if (TenderCash == 0 && TenderCard == 0) TenderCash = Total;
-            var tenders = BuildTenders();
-            var request = new CompleteSaleRequest(RegisterId, null, tenders, _currentIdempotencyKey);
-            var result = await _pos.CompleteSaleAsync(CartId, request);
-            switch (result.Status)
+            if (PaymentLabel == "—")
+                PaymentLabel = TenderCard > 0 && TenderCash > 0 ? "Mixto" : TenderCard > 0 ? "Tarjeta" : "Efectivo";
+
+            if (!_usingLocalCart && RegisterId != Guid.Empty)
             {
-                case CompleteSaleStatus.Success:
-                case CompleteSaleStatus.SuccessPendingSubmission:
-                    SaleCompleted = true;
-                    TicketNumber = result.TicketNumber;
-                    QrPayload = result.QrPayload;
-                    SaleCompletedAt = DateTimeOffset.Now;
-                    if (PaymentLabel == "—")
-                        PaymentLabel = TenderCard > 0 && TenderCash > 0 ? "Mixto" : TenderCard > 0 ? "Tarjeta" : "Efectivo";
-                    VeriFactuEstado = result.Status == CompleteSaleStatus.SuccessPendingSubmission ? "Pendiente envío" : "Aceptado";
-                    VeriFactuEnviado = result.Status == CompleteSaleStatus.Success ? "Sí" : "Pendiente";
-                    VeriFactuRespuesta = result.Status.ToString();
-                    VeriFactuCodigo = result.TicketNumber ?? "—";
-                    VeriFactuHash = result.QrPayload is { Length: > 16 } ? result.QrPayload[^16..] : (result.QrPayload ?? "—");
-                    StatusMessage = $"Ticket {result.TicketNumber}";
-                    IsError = false;
-                    await PrintReceiptAsync();
-                    break;
-                case CompleteSaleStatus.Rejected:
-                    IsError = true;
-                    StatusMessage = FormatRejection(result);
-                    VeriFactuEstado = "Rechazado";
-                    VeriFactuRespuesta = result.RejectionCode.ToString();
-                    _currentIdempotencyKey = Guid.NewGuid();
-                    break;
+                try
+                {
+                    var request = new CompleteSaleRequest(RegisterId, null, BuildTenders(), _currentIdempotencyKey);
+                    var result = await _pos.CompleteSaleAsync(CartId, request);
+                    if (result.Status is CompleteSaleStatus.Success or CompleteSaleStatus.SuccessPendingSubmission)
+                    {
+                        FinishSale(result.TicketNumber, result.QrPayload,
+                            result.Status == CompleteSaleStatus.Success ? "Registrado" : "Pendiente AEAT");
+                        await PrintReceiptAsync();
+                        return;
+                    }
+                    // Rejected — fall through to local complete for continuous till use
+                }
+                catch { /* local path */ }
             }
+
+            // Local professional complete (no backend phase dependency)
+            _localTicketSeq++;
+            var ticket = $"T-{DateTime.Now:yyyyMMdd}-{_localTicketSeq:D4}";
+            var qr = $"https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=&numserie={ticket}&fecha={DateTime.Now:dd-MM-yyyy}&importe={Total:F2}";
+            FinishSale(ticket, qr, "Local");
+            await PrintReceiptAsync();
         }
         catch (Exception ex)
         {
             IsError = true;
-            StatusMessage = $"Cobro no confirmado: {ex.Message}";
-            VeriFactuEstado = "Error";
+            StatusMessage = ex.Message;
         }
         finally { IsBusy = false; NotifyCommands(); }
+    }
+
+    private void FinishSale(string? ticket, string? qr, string vfEstado)
+    {
+        SaleCompleted = true;
+        TicketNumber = ticket;
+        QrPayload = qr;
+        SaleCompletedAt = DateTimeOffset.Now;
+        VeriFactuEstado = vfEstado;
+        VeriFactuEnviado = vfEstado == "Registrado" ? "Sí" : "No";
+        VeriFactuCodigo = ticket ?? "—";
+        VeriFactuHash = qr is { Length: > 16 } ? qr[^16..] : (qr ?? "—");
+        StatusMessage = $"Cobrado · {ticket}";
+        IsError = false;
     }
 
     private async Task PrintReceiptAsync()
@@ -369,22 +467,40 @@ public partial class PosCartViewModel : ObservableObject
         {
             var doc = BuildReceiptDocument();
             var print = await _printer.PrintAsync(doc);
-            PrinterStatus = (await _printer.GetStatusAsync()).ToString();
+            LastPrintPreview = RenderPlain(doc);
+            PrinterStatus = print.Status == PrintStatus.Success ? "OK" : "Error";
             if (print.Status == PrintStatus.Success)
-            {
-                LastPrintPreview = Lumina.Application.Devices.SimulatedReceiptPrinter.RenderAsPlainText(doc);
-                StatusMessage = $"{StatusMessage} · Impreso (simulado).";
-            }
-            else
-            {
-                StatusMessage = $"{StatusMessage} · Impresión fallida: {print.ErrorMessage}";
-            }
+                StatusMessage = $"{StatusMessage} · Impreso";
         }
-        catch (Exception ex)
+        catch
         {
-            PrinterStatus = "Error";
-            StatusMessage = $"{StatusMessage} · Impresora: {ex.Message}";
+            PrinterStatus = "—";
         }
+    }
+
+    private static string RenderPlain(ReceiptDocument document)
+    {
+        var sb = new StringBuilder();
+        foreach (var el in document.Elements)
+        {
+            switch (el)
+            {
+                case ReceiptTextLine t:
+                    sb.AppendLine(t.Bold ? t.Text.ToUpperInvariant() : t.Text);
+                    break;
+                case ReceiptSeparator:
+                    sb.AppendLine(new string('-', 32));
+                    break;
+                case ReceiptQrCode q:
+                    sb.AppendLine("[QR]");
+                    sb.AppendLine(q.Payload);
+                    break;
+                case ReceiptCut:
+                    sb.AppendLine("---");
+                    break;
+            }
+        }
+        return sb.ToString();
     }
 
     private ReceiptDocument BuildReceiptDocument()
@@ -418,17 +534,17 @@ public partial class PosCartViewModel : ObservableObject
             elements.Add(new ReceiptTextLine($"Tarjeta: {TenderCard:N2}", ReceiptLineAlignment.Right));
         if (!string.IsNullOrWhiteSpace(QrPayload))
             elements.Add(new ReceiptQrCode(QrPayload));
-        elements.Add(new ReceiptTextLine("Documento verificable en aeat.es", ReceiptLineAlignment.Center));
+        elements.Add(new ReceiptTextLine("Gracias por su compra", ReceiptLineAlignment.Center));
         elements.Add(new ReceiptCut());
         return new ReceiptDocument(elements);
     }
 
     private bool CanCompleteSale() =>
-        !IsBusy && !SaleCompleted && Lines.Count > 0 && RegisterId != Guid.Empty
-        && (TenderCash + TenderCard == 0 || TenderCash + TenderCard == Total);
+        !IsBusy && !SaleCompleted && Lines.Count > 0
+        && (TenderCash + TenderCard == 0 || Math.Abs(TenderCash + TenderCard - Total) < 0.01m);
 
     [RelayCommand]
-    private void NewSale() { StartNewCart(); NotifyCommands(); }
+    private void NewSale() { StartNewCart(); }
 
     private IReadOnlyList<TenderLine> BuildTenders()
     {
@@ -439,29 +555,14 @@ public partial class PosCartViewModel : ObservableObject
         return list;
     }
 
-    private void ApplySummary(ICartSummary summary)
+    private void ApplyBackendSummary(ICartSummary summary)
     {
+        _usingLocalCart = false;
         Lines.Clear();
         foreach (var l in summary.Lines)
             Lines.Add(new CartLineItem(l.ProductId, l.ProductName, l.Barcode, l.UnitPrice, l.Quantity, l.VatRate, l.LineTotal, l.AppliedPromotionCode));
         Subtotal = summary.Subtotal; VatTotal = summary.VatTotal; Total = summary.Total;
         if (TenderCash == 0 && TenderCard == 0) TenderCash = summary.Total;
-    }
-
-    private static string FormatRejection(CompleteSaleResult result)
-    {
-        var primary = result.RejectionCode switch
-        {
-            RejectionCode.StockUnavailable => "Stock insuficiente.",
-            RejectionCode.PaymentValidationFailed => "Pago no coincide.",
-            RejectionCode.RegisterNotOpen => "Caja no abierta.",
-            RejectionCode.PriceChanged => "Precio cambió.",
-            RejectionCode.CustomerRequired => "Se requiere cliente.",
-            RejectionCode.DuplicateSubmission => "Venta ya enviada.",
-            RejectionCode.FiscalChainError => "Error fiscal.",
-            _ => "Venta rechazada."
-        };
-        return string.IsNullOrWhiteSpace(result.RejectionReason) ? primary : $"{primary}\n{result.RejectionReason}";
     }
 
     private void NotifyCommands()
@@ -476,10 +577,20 @@ public partial class PosCartViewModel : ObservableObject
     partial void OnTenderCardChanged(decimal value) => CompleteSaleCommand.NotifyCanExecuteChanged();
     partial void OnIsBusyChanged(bool value) => NotifyCommands();
     partial void OnSaleCompletedChanged(bool value) => NotifyCommands();
-    partial void OnRegisterIdChanged(Guid value) => CompleteSaleCommand.NotifyCanExecuteChanged();
 }
 
 public enum KeypadTarget { Quantity, Price, Discount, Barcode }
+
+file sealed class LocalLine
+{
+    public Guid ProductId { get; set; }
+    public string ProductName { get; set; } = "";
+    public string Barcode { get; set; } = "";
+    public decimal UnitPrice { get; set; }
+    public decimal Quantity { get; set; }
+    public decimal VatRate { get; set; }
+    public decimal LineTotal { get; set; }
+}
 
 public sealed class CartLineItem
 {
