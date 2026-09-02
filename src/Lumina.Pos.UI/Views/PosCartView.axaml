@@ -5,12 +5,11 @@
              x:DataType="vm:PosCartViewModel"
              Background="#0B1220">
 
-  <!-- Professional cashier layout: ticket+depts | total+keypad+pay | receipt strip -->
   <Grid RowDefinitions="48,*,56,28" ColumnDefinitions="*" Margin="6">
 
-    <!-- ══ SESSION STRIP ══ -->
-        <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="10,0" Margin="0,0,0,6">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto">
+    <!-- SESSION STRIP -->
+    <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="10,0" Margin="0,0,0,6">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto">
         <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,20,0">
           <TextBlock Text="TIENDA" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding StoreLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
@@ -27,7 +26,11 @@
           <TextBlock Text="CAJERO" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding CashierLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
-        <Border Grid.Column="5" Background="#1B8FB5" CornerRadius="8" Padding="16,4" MinWidth="160">
+        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,12,0">
+          <TextBlock Text="{Binding PrinterStatus, StringFormat='Imp. {0}'}" FontSize="11" Foreground="#6BCB77" />
+          <TextBlock Text="{Binding ScaleStatus, StringFormat='Bal. {0}'}" FontSize="11" Foreground="#6BCB77" />
+        </StackPanel>
+        <Border Grid.Column="7" Background="#1B8FB5" CornerRadius="8" Padding="16,4" MinWidth="160">
           <StackPanel HorizontalAlignment="Right">
             <TextBlock Text="TOTAL" FontSize="10" Foreground="#93C5FD" HorizontalAlignment="Right" />
             <TextBlock Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontSize="26" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right" />
@@ -36,13 +39,10 @@
       </Grid>
     </Border>
 
-    <!-- ══ MAIN WORK SURFACE ══ -->
     <Grid Grid.Row="1" ColumnDefinitions="*,280,200">
 
-      <!-- LEFT: ticket lines + department pad -->
       <Grid Grid.Column="0" RowDefinitions="Auto,*,140" Margin="0,0,6,0">
 
-        <!-- Scan -->
         <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="8" Margin="0,0,0,6">
           <Grid ColumnDefinitions="*,70,88">
             <TextBox Watermark="Escanear o teclear código de barras…"
@@ -59,7 +59,6 @@
           </Grid>
         </Border>
 
-        <!-- Lines table -->
         <Border Grid.Row="1" Background="#121A2B" CornerRadius="8" Margin="0,0,0,6">
           <DockPanel>
             <Border DockPanel.Dock="Top" Background="#1A2030" Padding="10,8">
@@ -78,7 +77,7 @@
                 <DataTemplate x:DataType="vm:CartLineItem">
                   <Border BorderBrush="#1A2030" BorderThickness="0,0,0,1" Padding="10,10">
                     <Grid ColumnDefinitions="56,*,72,56,56,80,36">
-                      <TextBlock Text="{Binding Barcode}" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" />
+                      <TextBlock Text="{Binding Barcode}" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="1" Text="{Binding ProductName}" FontSize="14" FontWeight="SemiBold"
                                  Foreground="#F9FAFB" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="2" Text="{Binding UnitPrice, StringFormat='{}{0:N2}'}" FontSize="13"
@@ -100,38 +99,20 @@
           </DockPanel>
         </Border>
 
-        <!-- Department / quick product pad (GesVent Secciones / Familias) -->
         <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="6">
-          <Grid RowDefinitions="Auto,*">
-            <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,0,0,6">
-              <Border Background="#1B8FB5" CornerRadius="4" Padding="10,4">
-                <TextBlock Text="Directa" FontSize="12" FontWeight="SemiBold" Foreground="White" />
-              </Border>
-              <Border Background="#1A2030" CornerRadius="4" Padding="10,4">
-                <TextBlock Text="Secciones" FontSize="12" Foreground="#D1D5DB" />
-              </Border>
-              <Border Background="#1A2030" CornerRadius="4" Padding="10,4">
-                <TextBlock Text="Familias" FontSize="12" Foreground="#D1D5DB" />
-              </Border>
-              <Border Background="#1A2030" CornerRadius="4" Padding="10,4">
-                <TextBlock Text="Artículos" FontSize="12" Foreground="#D1D5DB" />
-              </Border>
-            </StackPanel>
-            <UniformGrid Grid.Row="1" Columns="4" Rows="2">
-              <Button Content="FRUTA" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="VARIOS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="PAN" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="CERVEZA" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="LÁCTEOS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="CARNES" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="BEBIDAS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-              <Button Content="+ MÁS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#93C5FD" />
-            </UniformGrid>
-          </Grid>
+          <UniformGrid Columns="4" Rows="2">
+            <Button Content="FRUTA" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="VARIOS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="PAN" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="CERVEZA" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="LÁCTEOS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="CARNES" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="BEBIDAS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="BALANZA" Command="{Binding ReadScaleCommand}" Margin="3" MinHeight="52" FontWeight="Bold" Background="#0E7490" Foreground="White" />
+          </UniformGrid>
         </Border>
       </Grid>
 
-      <!-- CENTER: totals + keypad + payment -->
       <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto" Margin="0,0,6,0">
 
         <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="12" Margin="0,0,0,6">
@@ -206,7 +187,6 @@
         </StackPanel>
       </Grid>
 
-      <!-- RIGHT: receipt + VeriFactu -->
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
         <Border Grid.Row="0" Background="#F8FAFC" CornerRadius="6" Padding="12" Margin="0,0,0,6">
           <ScrollViewer>
@@ -246,24 +226,14 @@
               <TextBlock Grid.Column="1" Text="{Binding VeriFactuEstado}" FontSize="11" FontWeight="SemiBold" Foreground="#60A5FA" Margin="8,0,0,0" />
             </Grid>
             <Grid ColumnDefinitions="Auto,*">
-              <TextBlock Text="Enviado" FontSize="11" Foreground="#6B7280" />
-              <TextBlock Grid.Column="1" Text="{Binding VeriFactuEnviado}" FontSize="11" Foreground="#D1D5DB" Margin="8,0,0,0" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*">
               <TextBlock Text="Nº" FontSize="11" Foreground="#6B7280" />
               <TextBlock Grid.Column="1" Text="{Binding VeriFactuCodigo}" FontSize="11" Foreground="#D1D5DB" Margin="8,0,0,0" />
-            </Grid>
-            <Grid ColumnDefinitions="Auto,*">
-              <TextBlock Text="Hash" FontSize="11" Foreground="#6B7280" />
-              <TextBlock Grid.Column="1" Text="{Binding VeriFactuHash}" FontSize="10" Foreground="#9CA3AF" Margin="8,0,0,0"
-                         FontFamily="Consolas, Courier New, monospace" TextTrimming="CharacterEllipsis" />
             </Grid>
           </StackPanel>
         </Border>
       </Grid>
     </Grid>
 
-    <!-- ══ FUNCTION BAR ══ -->
     <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="4" Margin="0,6,0,0">
       <UniformGrid Columns="8">
         <Button Content="F3 Clientes" Command="{Binding FunctionClientesCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
@@ -271,13 +241,12 @@
         <Button Content="F5 Descuento" Command="{Binding FunctionDescuentoCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
         <Button Content="F6 Observ." Command="{Binding FunctionObservacionesCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
         <Button Content="F7 Cajón" Command="{Binding FunctionCajonCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
-        <Button Content="F11 Regalo" Command="{Binding PayGiftTicketCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
+        <Button Content="Balanza" Command="{Binding ReadScaleCommand}" Margin="3" MinHeight="44" Background="#0E7490" Foreground="White" FontWeight="SemiBold" />
         <Button Content="Nuevo ticket" Command="{Binding NewSaleCommand}" Margin="3" MinHeight="44" Background="#374151" Foreground="White" FontWeight="SemiBold" />
         <Button Content="Cód. barras" Command="{Binding SetKeypadTargetCommand}" CommandParameter="Barcode" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#93C5FD" />
       </UniformGrid>
     </Border>
 
-    <!-- ══ STATUS ══ -->
     <Border Grid.Row="3" Background="#0B1220" Padding="10,4" Margin="0,4,0,0">
       <TextBlock Text="{Binding StatusMessage}" FontSize="12" Foreground="#93C5FD" VerticalAlignment="Center" />
     </Border>
