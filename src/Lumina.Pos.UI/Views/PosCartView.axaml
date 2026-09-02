@@ -9,16 +9,16 @@
 
     <!-- SESSION STRIP -->
     <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="10,0" Margin="0,0,0,6">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto,Auto">
-        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,20,0">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,*,Auto,Auto">
+        <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
           <TextBlock Text="TIENDA" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding StoreLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
-        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,20,0">
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
           <TextBlock Text="CAJA" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding RegisterLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
-        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,20,0">
+        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="0,0,16,0">
           <TextBlock Text="TICKET" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding TicketNumber, TargetNullValue=—}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
@@ -26,25 +26,27 @@
           <TextBlock Text="CAJERO" FontSize="10" Foreground="#6B7280" VerticalAlignment="Center" />
           <TextBlock Text="{Binding CashierLabel}" FontWeight="SemiBold" FontSize="13" Foreground="#F3F4F6" VerticalAlignment="Center" />
         </StackPanel>
-        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center" Margin="0,0,12,0">
+        <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" Margin="0,0,12,0">
           <TextBlock Text="{Binding PrinterStatus, StringFormat='Imp. {0}'}" FontSize="11" Foreground="#6BCB77" />
           <TextBlock Text="{Binding ScaleStatus, StringFormat='Bal. {0}'}" FontSize="11" Foreground="#6BCB77" />
         </StackPanel>
-        <Border Grid.Column="7" Background="#1B8FB5" CornerRadius="8" Padding="16,4" MinWidth="160">
+        <Border Grid.Column="6" Background="#1B8FB5" CornerRadius="8" Padding="16,4" MinWidth="150">
           <StackPanel HorizontalAlignment="Right">
             <TextBlock Text="TOTAL" FontSize="10" Foreground="#93C5FD" HorizontalAlignment="Right" />
-            <TextBlock Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontSize="26" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right" />
+            <TextBlock Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontSize="24" FontWeight="Bold" Foreground="White" HorizontalAlignment="Right" />
           </StackPanel>
         </Border>
       </Grid>
     </Border>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,280,200">
+    <!-- MAIN: ticket | keypad+pay | receipt -->
+    <Grid Grid.Row="1" ColumnDefinitions="*,300,200">
 
-      <Grid Grid.Column="0" RowDefinitions="Auto,*,140" Margin="0,0,6,0">
+      <!-- LEFT: scan + lines + depts -->
+      <Grid Grid.Column="0" RowDefinitions="Auto,*,130" Margin="0,0,6,0">
 
         <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="8" Margin="0,0,0,6">
-          <Grid ColumnDefinitions="*,70,88">
+          <Grid ColumnDefinitions="*,72,96">
             <TextBox Watermark="Escanear o teclear código de barras…"
                      Text="{Binding BarcodeInput}"
                      FontSize="18" MinHeight="48"
@@ -62,7 +64,7 @@
         <Border Grid.Row="1" Background="#121A2B" CornerRadius="8" Margin="0,0,0,6">
           <DockPanel>
             <Border DockPanel.Dock="Top" Background="#1A2030" Padding="10,8">
-              <Grid ColumnDefinitions="56,*,72,56,56,80,36">
+              <Grid ColumnDefinitions="64,*,72,56,56,80,36">
                 <TextBlock Text="CÓD." FontSize="11" FontWeight="SemiBold" Foreground="#9CA3AF" />
                 <TextBlock Grid.Column="1" Text="ARTÍCULO" FontSize="11" FontWeight="SemiBold" Foreground="#9CA3AF" />
                 <TextBlock Grid.Column="2" Text="PRECIO" FontSize="11" FontWeight="SemiBold" Foreground="#9CA3AF" HorizontalAlignment="Right" />
@@ -76,7 +78,7 @@
               <ListBox.ItemTemplate>
                 <DataTemplate x:DataType="vm:CartLineItem">
                   <Border BorderBrush="#1A2030" BorderThickness="0,0,0,1" Padding="10,10">
-                    <Grid ColumnDefinitions="56,*,72,56,56,80,36">
+                    <Grid ColumnDefinitions="64,*,72,56,56,80,36">
                       <TextBlock Text="{Binding Barcode}" FontSize="12" Foreground="#9CA3AF" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                       <TextBlock Grid.Column="1" Text="{Binding ProductName}" FontSize="14" FontWeight="SemiBold"
                                  Foreground="#F9FAFB" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
@@ -101,22 +103,24 @@
 
         <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="6">
           <UniformGrid Columns="4" Rows="2">
-            <Button Content="FRUTA" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="VARIOS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="PAN" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="CERVEZA" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="LÁCTEOS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="CARNES" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="BEBIDAS" Margin="3" MinHeight="52" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Content="BALANZA" Command="{Binding ReadScaleCommand}" Margin="3" MinHeight="52" FontWeight="Bold" Background="#0E7490" Foreground="White" />
+            <Button Content="FRUTA" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="VARIOS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="PAN" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="CERVEZA" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="LÁCTEOS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="CARNES" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="BEBIDAS" Margin="3" MinHeight="48" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Content="BALANZA" Command="{Binding ReadScaleCommand}" Margin="3" MinHeight="48" FontWeight="Bold" Background="#0E7490" Foreground="White" />
           </UniformGrid>
         </Border>
       </Grid>
 
+      <!-- CENTER: totals + FIXED KEYPAD + pay -->
       <Grid Grid.Column="1" RowDefinitions="Auto,Auto,*,Auto" Margin="0,0,6,0">
 
+        <!-- Totals card -->
         <Border Grid.Row="0" Background="#121A2B" CornerRadius="8" Padding="12" Margin="0,0,0,6">
-          <StackPanel Spacing="6">
+          <StackPanel Spacing="5">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Subtotal" Foreground="#9CA3AF" FontSize="13" />
               <TextBlock Grid.Column="1" Text="{Binding Subtotal, StringFormat='{}{0:N2}'}" Foreground="#F3F4F6" FontSize="13" />
@@ -134,7 +138,7 @@
               <TextBlock Text="TOTAL" FontWeight="Bold" FontSize="18" Foreground="#F9FAFB" />
               <TextBlock Grid.Column="1" Text="{Binding Total, StringFormat='{}{0:N2} €'}" FontWeight="Bold" FontSize="20" Foreground="#7DD3E8" />
             </Grid>
-            <Grid ColumnDefinitions="*,Auto" Margin="0,2,0,0">
+            <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Efectivo" Foreground="#6B7280" FontSize="12" />
               <TextBlock Grid.Column="1" Text="{Binding TenderCash, StringFormat='{}{0:N2}'}" Foreground="#D1D5DB" FontSize="12" />
             </Grid>
@@ -145,48 +149,114 @@
           </StackPanel>
         </Border>
 
-        <Border Grid.Row="1" Background="#0B1220" BorderBrush="#1F2937" BorderThickness="1" CornerRadius="8" Padding="10,8" Margin="0,0,0,6">
-          <StackPanel>
-            <TextBlock Text="{Binding KeypadTarget}" FontSize="10" Foreground="#6B7280" />
-            <TextBlock Text="{Binding KeypadBuffer}" FontSize="28" FontWeight="Bold" Foreground="#F9FAFB" MinHeight="34" />
-          </StackPanel>
+        <!-- Keypad display -->
+        <Border Grid.Row="1" Background="#0B1220" BorderBrush="#334155" BorderThickness="1"
+                CornerRadius="8" Padding="12,8" Margin="0,0,0,6">
+          <Grid ColumnDefinitions="Auto,*">
+            <TextBlock Text="{Binding KeypadTarget}" FontSize="11" Foreground="#64748B"
+                       VerticalAlignment="Center" Margin="0,0,10,0" Width="56" />
+            <TextBlock Grid.Column="1" Text="{Binding KeypadBuffer}"
+                       FontSize="26" FontWeight="Bold" Foreground="#F8FAFC"
+                       HorizontalAlignment="Right" VerticalAlignment="Center"
+                       MinHeight="32" />
+          </Grid>
         </Border>
 
-        <DockPanel Grid.Row="2">
-          <UniformGrid DockPanel.Dock="Top" Columns="3" Margin="0,0,0,4">
-            <Button Content="Cant." Command="{Binding SetKeypadTargetCommand}" CommandParameter="Quantity" Margin="2" MinHeight="36" Background="#1E293B" Foreground="#E5E7EB" />
-            <Button Content="Precio" Command="{Binding SetKeypadTargetCommand}" CommandParameter="Price" Margin="2" MinHeight="36" Background="#1E293B" Foreground="#E5E7EB" />
-            <Button Content="Dto." Command="{Binding SetKeypadTargetCommand}" CommandParameter="Discount" Margin="2" MinHeight="36" Background="#1E293B" Foreground="#E5E7EB" />
-          </UniformGrid>
-          <UniformGrid DockPanel.Dock="Bottom" Columns="3" Margin="0,4,0,0">
-            <Button Content="C" Command="{Binding KeypadClearCommand}" Margin="2" MinHeight="40" Background="#374151" Foreground="White" FontWeight="Bold" />
-            <Button Content="⌫" Command="{Binding KeypadBackspaceCommand}" Margin="2" MinHeight="40" Background="#374151" Foreground="White" />
-            <Button Content="INTRO" Command="{Binding KeypadEnterCommand}" Margin="2" MinHeight="40" Background="#7C3AED" Foreground="White" FontWeight="Bold" />
-          </UniformGrid>
-          <UniformGrid Columns="3" Rows="4">
-            <Button Content="7" Command="{Binding KeypadDigitCommand}" CommandParameter="7" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="8" Command="{Binding KeypadDigitCommand}" CommandParameter="8" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="9" Command="{Binding KeypadDigitCommand}" CommandParameter="9" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="4" Command="{Binding KeypadDigitCommand}" CommandParameter="4" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="5" Command="{Binding KeypadDigitCommand}" CommandParameter="5" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="6" Command="{Binding KeypadDigitCommand}" CommandParameter="6" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="1" Command="{Binding KeypadDigitCommand}" CommandParameter="1" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="2" Command="{Binding KeypadDigitCommand}" CommandParameter="2" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="3" Command="{Binding KeypadDigitCommand}" CommandParameter="3" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="0" Command="{Binding KeypadDigitCommand}" CommandParameter="0" Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="00" Command="{Binding KeypadDigitCommand}" CommandParameter="00" Margin="2" MinHeight="52" FontSize="18" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-            <Button Content="," Command="{Binding KeypadDigitCommand}" CommandParameter="," Margin="2" MinHeight="52" FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F9FAFB" />
-          </UniformGrid>
-        </DockPanel>
+        <!--
+          Professional POS keypad — explicit 6×3 Grid (no DockPanel).
+          Mode: Cant | Precio | Dto
+          Digits: 7 8 9 / 4 5 6 / 1 2 3 / 0 00 ,
+          Actions: C | ⌫ | INTRO
+        -->
+        <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="6">
+          <Grid RowDefinitions="36,*,*,*,*,40" ColumnDefinitions="*,*,*">
 
+            <!-- Mode row -->
+            <Button Grid.Row="0" Grid.Column="0" Content="Cant." Margin="2"
+                    Command="{Binding SetKeypadTargetCommand}" CommandParameter="Quantity"
+                    FontSize="12" FontWeight="SemiBold" Background="#334155" Foreground="#F1F5F9" />
+            <Button Grid.Row="0" Grid.Column="1" Content="Precio" Margin="2"
+                    Command="{Binding SetKeypadTargetCommand}" CommandParameter="Price"
+                    FontSize="12" FontWeight="SemiBold" Background="#334155" Foreground="#F1F5F9" />
+            <Button Grid.Row="0" Grid.Column="2" Content="Dto." Margin="2"
+                    Command="{Binding SetKeypadTargetCommand}" CommandParameter="Discount"
+                    FontSize="12" FontWeight="SemiBold" Background="#334155" Foreground="#F1F5F9" />
+
+            <!-- 7 8 9 -->
+            <Button Grid.Row="1" Grid.Column="0" Content="7" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="7"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="1" Grid.Column="1" Content="8" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="8"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="1" Grid.Column="2" Content="9" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="9"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+
+            <!-- 4 5 6 -->
+            <Button Grid.Row="2" Grid.Column="0" Content="4" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="4"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="2" Grid.Column="1" Content="5" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="5"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="2" Grid.Column="2" Content="6" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="6"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+
+            <!-- 1 2 3 -->
+            <Button Grid.Row="3" Grid.Column="0" Content="1" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="1"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="3" Grid.Column="1" Content="2" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="2"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="3" Grid.Column="2" Content="3" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="3"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+
+            <!-- 0 00 , -->
+            <Button Grid.Row="4" Grid.Column="0" Content="0" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="0"
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="4" Grid.Column="1" Content="00" Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter="00"
+                    FontSize="18" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="4" Grid.Column="2" Content="," Margin="2"
+                    Command="{Binding KeypadDigitCommand}" CommandParameter=","
+                    FontSize="22" FontWeight="SemiBold" Background="#1E293B" Foreground="#F8FAFC" />
+
+            <!-- C  ⌫  INTRO -->
+            <Button Grid.Row="5" Grid.Column="0" Content="C" Margin="2"
+                    Command="{Binding KeypadClearCommand}"
+                    FontSize="16" FontWeight="Bold" Background="#475569" Foreground="White" />
+            <Button Grid.Row="5" Grid.Column="1" Content="⌫" Margin="2"
+                    Command="{Binding KeypadBackspaceCommand}"
+                    FontSize="16" FontWeight="Bold" Background="#475569" Foreground="White" />
+            <Button Grid.Row="5" Grid.Column="2" Content="INTRO" Margin="2"
+                    Command="{Binding KeypadEnterCommand}"
+                    FontSize="13" FontWeight="Bold" Background="#7C3AED" Foreground="White" />
+          </Grid>
+        </Border>
+
+        <!-- Payment actions -->
         <StackPanel Grid.Row="3" Spacing="4" Margin="0,6,0,0">
-          <Button Content="F8  EFECTIVO" Command="{Binding PayCashCommand}" HorizontalAlignment="Stretch" MinHeight="44" FontWeight="SemiBold" Background="#065F46" Foreground="#ECFDF5" />
-          <Button Content="F9  TARJETA" Command="{Binding PayCardCommand}" HorizontalAlignment="Stretch" MinHeight="44" FontWeight="SemiBold" Background="#1E3A5F" Foreground="#DBEAFE" />
-          <Button Content="F10 MIXTO" Command="{Binding PayMixedCommand}" HorizontalAlignment="Stretch" MinHeight="40" FontWeight="SemiBold" Background="#1E293B" Foreground="#E5E7EB" />
-          <Button Content="F12  COBRAR" Command="{Binding CompleteSaleCommand}" HorizontalAlignment="Stretch" MinHeight="56" FontSize="18" FontWeight="Bold" Background="#16A34A" Foreground="White" />
+          <Button Content="F8  EFECTIVO" Command="{Binding PayCashCommand}"
+                  HorizontalAlignment="Stretch" MinHeight="42" FontWeight="SemiBold"
+                  Background="#065F46" Foreground="#ECFDF5" />
+          <Button Content="F9  TARJETA" Command="{Binding PayCardCommand}"
+                  HorizontalAlignment="Stretch" MinHeight="42" FontWeight="SemiBold"
+                  Background="#1E3A5F" Foreground="#DBEAFE" />
+          <Button Content="F10 MIXTO" Command="{Binding PayMixedCommand}"
+                  HorizontalAlignment="Stretch" MinHeight="38" FontWeight="SemiBold"
+                  Background="#1E293B" Foreground="#E5E7EB" />
+          <Button Content="F12  COBRAR" Command="{Binding CompleteSaleCommand}"
+                  HorizontalAlignment="Stretch" MinHeight="52" FontSize="17" FontWeight="Bold"
+                  Background="#16A34A" Foreground="White" />
         </StackPanel>
       </Grid>
 
+      <!-- RIGHT: receipt + VeriFactu -->
       <Grid Grid.Column="2" RowDefinitions="*,Auto">
         <Border Grid.Row="0" Background="#F8FAFC" CornerRadius="6" Padding="12" Margin="0,0,0,6">
           <ScrollViewer>
@@ -234,6 +304,7 @@
       </Grid>
     </Grid>
 
+    <!-- FUNCTION BAR -->
     <Border Grid.Row="2" Background="#121A2B" CornerRadius="8" Padding="4" Margin="0,6,0,0">
       <UniformGrid Columns="8">
         <Button Content="F3 Clientes" Command="{Binding FunctionClientesCommand}" Margin="3" MinHeight="44" Background="#1E293B" Foreground="#E5E7EB" />
