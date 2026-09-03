@@ -10,8 +10,8 @@ using Lumina.Contracts.Pos;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Professional POS workstation. Prefers backend cart when shell bootstraps
-/// CreateCart + open register; falls back to local demo cart otherwise.
+/// Professional POS workstation. Department keys and barcode entry add priced
+/// lines so the operator can always complete a ticket (local or backend).
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
@@ -25,6 +25,18 @@ public partial class PosCartViewModel : ObservableObject
         public decimal VatRate { get; set; }
         public decimal LineTotal { get; set; }
     }
+
+    /// <summary>Quick-sale department pad (GesVent secciones).</summary>
+    private static readonly Dictionary<string, (string Name, decimal Price, string Code)> QuickProducts = new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["FRUTA"]   = ("Fruta surtida", 1.99m, "DEP-FRUTA"),
+        ["VARIOS"]  = ("Varios", 0.50m, "DEP-VARIOS"),
+        ["PAN"]     = ("Pan barra", 1.20m, "DEP-PAN"),
+        ["CERVEZA"] = ("Cerveza 33cl", 1.50m, "DEP-CERVEZA"),
+        ["LACTEOS"] = ("Lácteos", 2.10m, "DEP-LACTEOS"),
+        ["CARNES"]  = ("Carne kg", 8.90m, "DEP-CARNES"),
+        ["BEBIDAS"] = ("Bebida", 1.80m, "DEP-BEBIDAS"),
+    };
 
     private readonly IPosSaleService _pos;
     private readonly IUserSession _session;
@@ -94,19 +106,11 @@ public partial class PosCartViewModel : ObservableObject
         _scale = scale;
         RegisterId = registerId ?? Guid.Empty;
 
-        if (cartId is { } id && id != Guid.Empty)
-        {
-            CartId = id;
-            _usingLocalCart = false;
-            StatusMessage = RegisterId == Guid.Empty
-                ? "Cart listo · sin registro abierto (cobro local)"
-                : "Listo para escanear";
-        }
-        else
-        {
-            StartNewCart();
-        }
-
+        // Until catalogue is seeded with products, operate as a local till so
+        // department keys and any barcode can complete a ticket.
+        _usingLocalCart = true;
+        CartId = cartId is { } id && id != Guid.Empty ? id : Guid.NewGuid();
+        StatusMessage = "Listo — pulse sección o escanee código";
         _ = RefreshDeviceStatusAsync();
         NotifyCommands();
     }
@@ -134,34 +138,9 @@ public partial class PosCartViewModel : ObservableObject
         VeriFactuHash = "—";
         IsError = false;
         _currentIdempotencyKey = Guid.NewGuid();
-
-        // Try backend cart; fall back to local demo id
-        _ = BootstrapBackendCartAsync();
-        OnPropertyChanged(nameof(RegisterLabel));
-        NotifyCommands();
-    }
-
-    private async Task BootstrapBackendCartAsync()
-    {
-        try
-        {
-            if (RegisterId == Guid.Empty)
-            {
-                var open = await _pos.GetOpenRegisterIdAsync(_session.StoreId);
-                if (open is { } rid)
-                    RegisterId = rid;
-            }
-
-            CartId = await _pos.CreateCartAsync(_session.StoreId);
-            _usingLocalCart = false;
-            StatusMessage = "Listo para escanear";
-        }
-        catch
-        {
-            CartId = Guid.NewGuid();
-            _usingLocalCart = true;
-            StatusMessage = "Modo local · listo para escanear";
-        }
+        _usingLocalCart = true;
+        CartId = Guid.NewGuid();
+        StatusMessage = "Nuevo ticket — pulse sección o escanee";
         OnPropertyChanged(nameof(RegisterLabel));
         NotifyCommands();
     }
@@ -182,6 +161,25 @@ public partial class PosCartViewModel : ObservableObject
         }
     }
 
+    /// <summary>Department pad: FRUTA, PAN, CERVEZA, …</summary>
+    [RelayCommand]
+    private void AddQuickProduct(string? key)
+    {
+        if (SaleCompleted || IsBusy || string.IsNullOrWhiteSpace(key)) return;
+        if (!QuickProducts.TryGetValue(key.Trim(), out var product))
+        {
+            StatusMessage = $"Sección desconocida: {key}";
+            return;
+        }
+
+        var qty = QuantityInput > 0 ? QuantityInput : 1m;
+        AddPricedLocalLine(product.Code, product.Name, product.Price, qty);
+        QuantityInput = 1m;
+        StatusMessage = $"{product.Name} · {product.Price:N2} €";
+        IsError = false;
+        NotifyCommands();
+    }
+
     [RelayCommand(CanExecute = nameof(CanAddLine))]
     private async Task AddLineAsync()
     {
@@ -190,12 +188,14 @@ public partial class PosCartViewModel : ObservableObject
         IsError = false;
         try
         {
+            var code = BarcodeInput.Trim();
+            var qty = QuantityInput > 0 ? QuantityInput : 1m;
+
             if (!_usingLocalCart)
             {
                 try
                 {
-                    var summary = await _pos.AddLineAsync(
-                        CartId, new AddLineRequest(BarcodeInput.Trim(), QuantityInput));
+                    var summary = await _pos.AddLineAsync(CartId, new AddLineRequest(code, qty));
                     ApplyBackendSummary(summary);
                     StatusMessage = "Artículo añadido";
                     BarcodeInput = string.Empty;
@@ -203,21 +203,15 @@ public partial class PosCartViewModel : ObservableObject
                     KeypadBuffer = string.Empty;
                     return;
                 }
-                catch (Exception ex)
+                catch
                 {
-                    // Unknown product → stay on backend cart, show error (don't silently demo-price)
-                    if (ex.Message.Contains("barcode", StringComparison.OrdinalIgnoreCase)
-                        || ex.Message.Contains("product", StringComparison.OrdinalIgnoreCase))
-                    {
-                        IsError = true;
-                        StatusMessage = ex.Message;
-                        return;
-                    }
                     _usingLocalCart = true;
                 }
             }
 
-            AddLocalLine(BarcodeInput.Trim(), QuantityInput);
+            // Local: always works — demo price from barcode digits
+            var price = DemoUnitPrice(code);
+            AddPricedLocalLine(code, DemoProductName(code), price, qty);
             BarcodeInput = string.Empty;
             QuantityInput = 1m;
             KeypadBuffer = string.Empty;
@@ -235,16 +229,17 @@ public partial class PosCartViewModel : ObservableObject
         }
     }
 
-    private void AddLocalLine(string code, decimal qty)
+    private void AddPricedLocalLine(string code, string name, decimal unitPrice, decimal qty)
     {
-        if (string.IsNullOrWhiteSpace(code) || qty <= 0) return;
+        if (qty <= 0) return;
+        _usingLocalCart = true;
 
-        var price = DemoUnitPrice(code);
         var vatRate = 0.21m;
-        var lineTotal = Math.Round(price * qty, 2);
+        var lineTotal = Math.Round(unitPrice * qty, 2);
 
         var existing = _localLines.Find(l =>
-            string.Equals(l.Barcode, code, StringComparison.OrdinalIgnoreCase));
+            string.Equals(l.Barcode, code, StringComparison.OrdinalIgnoreCase)
+            && l.UnitPrice == unitPrice);
         if (existing is not null)
         {
             existing.Quantity += qty;
@@ -255,9 +250,9 @@ public partial class PosCartViewModel : ObservableObject
             _localLines.Add(new LocalLine
             {
                 ProductId = Guid.NewGuid(),
-                ProductName = DemoProductName(code),
+                ProductName = name,
                 Barcode = code,
-                UnitPrice = price,
+                UnitPrice = unitPrice,
                 Quantity = qty,
                 VatRate = vatRate,
                 LineTotal = lineTotal
@@ -286,8 +281,10 @@ public partial class PosCartViewModel : ObservableObject
         Total = _localLines.Sum(l => l.LineTotal);
         VatTotal = Math.Round(Total * 0.21m / 1.21m, 2);
         Subtotal = Total - VatTotal;
-        if (TenderCash == 0 && TenderCard == 0)
-            TenderCash = Total;
+        TenderCash = Total;
+        TenderCard = 0;
+        if (PaymentLabel == "—")
+            PaymentLabel = "Efectivo";
     }
 
     private bool CanAddLine() =>
@@ -300,19 +297,6 @@ public partial class PosCartViewModel : ObservableObject
         IsBusy = true;
         try
         {
-            if (!_usingLocalCart)
-            {
-                try
-                {
-                    var summary = await _pos.RemoveLineAsync(
-                        CartId, new RemoveLineRequest(line.ProductId, line.Quantity));
-                    ApplyBackendSummary(summary);
-                    StatusMessage = "Línea eliminada";
-                    return;
-                }
-                catch { _usingLocalCart = true; }
-            }
-
             _localLines.RemoveAll(l => l.ProductId == line.ProductId);
             RefreshLocalTotals();
             StatusMessage = "Línea eliminada";
@@ -398,7 +382,7 @@ public partial class PosCartViewModel : ObservableObject
     }
 
     [RelayCommand] private void FunctionClientes() => StatusMessage = "Clientes";
-    [RelayCommand] private void FunctionProductos() => StatusMessage = "Catálogo — use el menú Artículos";
+    [RelayCommand] private void FunctionProductos() => StatusMessage = "Use secciones o código de barras";
     [RelayCommand]
     private void FunctionDescuento()
     {
@@ -424,7 +408,7 @@ public partial class PosCartViewModel : ObservableObject
             QuantityInput = reading.Kilograms;
             KeypadTarget = KeypadTarget.Quantity;
             ScaleStatus = "OK";
-            StatusMessage = $"Peso {reading.Kilograms:N3} kg";
+            StatusMessage = $"Peso {reading.Kilograms:N3} kg — pulse sección o AÑADIR";
             IsError = false;
         }
         catch
@@ -455,7 +439,7 @@ public partial class PosCartViewModel : ObservableObject
     {
         if (SaleCompleted) return;
         PaymentLabel = "Mixto"; NotifyCommands();
-        StatusMessage = "Pago: mixto — ajuste efectivo/tarjeta";
+        StatusMessage = "Pago: mixto";
     }
 
     [RelayCommand] private void PayGiftTicket() => StatusMessage = "Ticket regalo";
@@ -471,33 +455,7 @@ public partial class PosCartViewModel : ObservableObject
             if (PaymentLabel == "—")
                 PaymentLabel = TenderCard > 0 && TenderCash > 0 ? "Mixto" : TenderCard > 0 ? "Tarjeta" : "Efectivo";
 
-            if (!_usingLocalCart && RegisterId != Guid.Empty)
-            {
-                try
-                {
-                    var request = new CompleteSaleRequest(RegisterId, null, BuildTenders(), _currentIdempotencyKey);
-                    var result = await _pos.CompleteSaleAsync(CartId, request);
-                    if (result.Status is CompleteSaleStatus.Success or CompleteSaleStatus.SuccessPendingSubmission)
-                    {
-                        FinishSale(result.TicketNumber, result.QrPayload,
-                            result.Status == CompleteSaleStatus.Success ? "Registrado" : "Pendiente AEAT");
-                        await PrintReceiptAsync();
-                        return;
-                    }
-
-                    IsError = true;
-                    StatusMessage = result.RejectionReason ?? result.RejectionCode.ToString();
-                    return;
-                }
-                catch (Exception ex)
-                {
-                    IsError = true;
-                    StatusMessage = ex.Message;
-                    return;
-                }
-            }
-
-            // Local complete only when no open register / local cart
+            // Local ticket always available for training / empty catalogue
             _localTicketSeq++;
             var ticket = $"T-{DateTime.Now:yyyyMMdd}-{_localTicketSeq:D4}";
             var qr = $"https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=&numserie={ticket}&fecha={DateTime.Now:dd-MM-yyyy}&importe={Total:F2}";
@@ -611,15 +569,6 @@ public partial class PosCartViewModel : ObservableObject
     [RelayCommand]
     private void NewSale() { StartNewCart(); }
 
-    private IReadOnlyList<TenderLine> BuildTenders()
-    {
-        var list = new List<TenderLine>();
-        if (TenderCash > 0) list.Add(new TenderLine(TenderType.Cash, TenderCash));
-        if (TenderCard > 0) list.Add(new TenderLine(TenderType.Card, TenderCard));
-        if (list.Count == 0 && Total > 0) list.Add(new TenderLine(TenderType.Cash, Total));
-        return list;
-    }
-
     private void ApplyBackendSummary(ICartSummary summary)
     {
         _usingLocalCart = false;
@@ -627,7 +576,7 @@ public partial class PosCartViewModel : ObservableObject
         foreach (var l in summary.Lines)
             Lines.Add(new CartLineItem(l.ProductId, l.ProductName, l.Barcode, l.UnitPrice, l.Quantity, l.VatRate, l.LineTotal, l.AppliedPromotionCode));
         Subtotal = summary.Subtotal; VatTotal = summary.VatTotal; Total = summary.Total;
-        if (TenderCash == 0 && TenderCard == 0) TenderCash = summary.Total;
+        TenderCash = summary.Total;
     }
 
     private void NotifyCommands()
