@@ -10,8 +10,8 @@ using Lumina.Contracts.Pos;
 namespace Lumina.Pos.UI.ViewModels;
 
 /// <summary>
-/// Professional POS workstation. Works offline for demo/training: local lines,
-/// tender, ticket, print. Backend sale is used when register + cart exist.
+/// Professional POS workstation. Prefers backend cart when shell bootstraps
+/// CreateCart + open register; falls back to local demo cart otherwise.
 /// </summary>
 public partial class PosCartViewModel : ObservableObject
 {
@@ -85,22 +85,35 @@ public partial class PosCartViewModel : ObservableObject
         IUserSession session,
         IReceiptPrinter printer,
         IScaleService scale,
-        Guid? registerId = null)
+        Guid? registerId = null,
+        Guid? cartId = null)
     {
         _pos = pos;
         _session = session;
         _printer = printer;
         _scale = scale;
         RegisterId = registerId ?? Guid.Empty;
-        StartNewCart();
+
+        if (cartId is { } id && id != Guid.Empty)
+        {
+            CartId = id;
+            _usingLocalCart = false;
+            StatusMessage = RegisterId == Guid.Empty
+                ? "Cart listo · sin registro abierto (cobro local)"
+                : "Listo para escanear";
+        }
+        else
+        {
+            StartNewCart();
+        }
+
         _ = RefreshDeviceStatusAsync();
+        NotifyCommands();
     }
 
     public void StartNewCart()
     {
-        CartId = Guid.NewGuid();
         _localLines.Clear();
-        _usingLocalCart = true;
         Lines.Clear();
         SelectedLine = null;
         Subtotal = VatTotal = DiscountTotal = Total = 0m;
@@ -119,9 +132,36 @@ public partial class PosCartViewModel : ObservableObject
         VeriFactuRespuesta = "—";
         VeriFactuCodigo = "—";
         VeriFactuHash = "—";
-        StatusMessage = "Listo para escanear";
         IsError = false;
         _currentIdempotencyKey = Guid.NewGuid();
+
+        // Try backend cart; fall back to local demo id
+        _ = BootstrapBackendCartAsync();
+        OnPropertyChanged(nameof(RegisterLabel));
+        NotifyCommands();
+    }
+
+    private async Task BootstrapBackendCartAsync()
+    {
+        try
+        {
+            if (RegisterId == Guid.Empty)
+            {
+                var open = await _pos.GetOpenRegisterIdAsync(_session.StoreId);
+                if (open is { } rid)
+                    RegisterId = rid;
+            }
+
+            CartId = await _pos.CreateCartAsync(_session.StoreId);
+            _usingLocalCart = false;
+            StatusMessage = "Listo para escanear";
+        }
+        catch
+        {
+            CartId = Guid.NewGuid();
+            _usingLocalCart = true;
+            StatusMessage = "Modo local · listo para escanear";
+        }
         OnPropertyChanged(nameof(RegisterLabel));
         NotifyCommands();
     }
@@ -163,8 +203,16 @@ public partial class PosCartViewModel : ObservableObject
                     KeypadBuffer = string.Empty;
                     return;
                 }
-                catch
+                catch (Exception ex)
                 {
+                    // Unknown product → stay on backend cart, show error (don't silently demo-price)
+                    if (ex.Message.Contains("barcode", StringComparison.OrdinalIgnoreCase)
+                        || ex.Message.Contains("product", StringComparison.OrdinalIgnoreCase))
+                    {
+                        IsError = true;
+                        StatusMessage = ex.Message;
+                        return;
+                    }
                     _usingLocalCart = true;
                 }
             }
@@ -436,10 +484,20 @@ public partial class PosCartViewModel : ObservableObject
                         await PrintReceiptAsync();
                         return;
                     }
+
+                    IsError = true;
+                    StatusMessage = result.RejectionReason ?? result.RejectionCode.ToString();
+                    return;
                 }
-                catch { /* local path */ }
+                catch (Exception ex)
+                {
+                    IsError = true;
+                    StatusMessage = ex.Message;
+                    return;
+                }
             }
 
+            // Local complete only when no open register / local cart
             _localTicketSeq++;
             var ticket = $"T-{DateTime.Now:yyyyMMdd}-{_localTicketSeq:D4}";
             var qr = $"https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=&numserie={ticket}&fecha={DateTime.Now:dd-MM-yyyy}&importe={Total:F2}";
