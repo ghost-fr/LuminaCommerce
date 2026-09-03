@@ -27,10 +27,7 @@ internal sealed class CartLineView : ICartLine
 }
 
 /// <summary>
-/// Concrete implementation of Lumina.Contracts.Pos.IPosSaleService — the fiscal-
-/// critical orchestration for Phase 3. See docs/CONTRACTS.md §2 for the contract
-/// this must satisfy; UI-visible behavior (what each CompleteSaleStatus means,
-/// idempotency semantics) is documented there, not repeated here.
+/// Concrete implementation of Lumina.Contracts.Pos.IPosSaleService.
 /// </summary>
 public sealed class PosSaleService : IPosSaleService
 {
@@ -63,6 +60,22 @@ public sealed class PosSaleService : IPosSaleService
         _tenantProvider = tenantProvider;
     }
 
+    public async Task<Guid> CreateCartAsync(Guid storeId, Guid? customerId = null, CancellationToken ct = default)
+    {
+        var cart = new Cart(Guid.NewGuid(), storeId);
+        if (customerId is not null)
+            cart.SetCustomer(customerId);
+        await _carts.AddAsync(cart, ct);
+        await _carts.SaveChangesAsync(ct);
+        return cart.Id;
+    }
+
+    public async Task<Guid?> GetOpenRegisterIdAsync(Guid storeId, CancellationToken ct = default)
+    {
+        var register = await _registers.FindOpenByStoreIdAsync(storeId, ct);
+        return register?.Id;
+    }
+
     public async Task<ICartSummary> AddLineAsync(Guid cartId, AddLineRequest request, CancellationToken ct = default)
     {
         var cart = await RequireCartAsync(cartId, ct);
@@ -91,10 +104,6 @@ public sealed class PosSaleService : IPosSaleService
     public async Task<CompleteSaleResult> CompleteSaleAsync(
         Guid cartId, CompleteSaleRequest request, CancellationToken ct = default)
     {
-        // Idempotency check FIRST, before any other validation — a retried request
-        // with a previously-successful key must short-circuit straight to the
-        // original result, never re-run stock/tender checks against what may now
-        // be a different cart state.
         var existing = await _sales.FindByIdempotencyKeyAsync(request.IdempotencyKey, ct);
         if (existing is not null)
         {
@@ -145,10 +154,6 @@ public sealed class PosSaleService : IPosSaleService
             Guid.NewGuid(), store.Id, register.Id, request.CustomerId, ticketNumber,
             saleLines, saleTenders, request.IdempotencyKey);
 
-        // SIF boundary: PerStore per config/appsettings default (see docs/CONTRACTS.md
-        // §0 / blueprint §8.4). If a tenant's config uses PerCompany or PerTerminal
-        // instead, this must resolve to store.TenantId or a terminal id respectively —
-        // wiring that config lookup is a Phase 9 hardening item, flagged not guessed.
         var sifBoundaryId = store.Id;
 
         var fiscalResult = await _fiscal.GenerateAsync(
@@ -161,10 +166,6 @@ public sealed class PosSaleService : IPosSaleService
         await _sales.AddAsync(sale, ct);
         await _sales.SaveChangesAsync(ct);
 
-        // NOTE: AEAT submission (VERI*FACTU outbox) is Phase 9 scope, not yet wired.
-        // Every sale currently returns Success, never SuccessPendingSubmission —
-        // correct for now since nothing is actually queued for async submission yet,
-        // but revisit this return value the moment the outbox lands in Phase 9.
         return new CompleteSaleResult(
             CompleteSaleStatus.Success, sale.Id, sale.TicketNumber,
             fiscalResult.QrPayload, RejectionCode.None, null);
@@ -177,19 +178,13 @@ public sealed class PosSaleService : IPosSaleService
         await _carts.FindByIdAsync(cartId, ct)
         ?? throw new InvalidOperationException(
             $"Cart {cartId} was not found. This indicates a UI/session bug (calling with a stale or " +
-            "unknown cart id), not a normal business rejection — it should never surface to the operator " +
-            "as a 'sale rejected' message.");
+            "unknown cart id), not a normal business rejection.");
 
     private async Task<ICartSummary> BuildSummaryAsync(Cart cart, CancellationToken ct)
     {
         var lineViews = new List<ICartLine>();
         foreach (var line in cart.Lines)
         {
-            // Product name/barcode looked up directly via IProductRepository — cheap,
-            // single-entity read. Price/VAT come from the cart line's own snapshot
-            // (correctly re-resolved at add-time per CONTRACTS.md §1), not re-fetched
-            // here, so a display-name lookup can never accidentally change the price
-            // the operator already sees.
             var product = await _products.FindByIdAsync(line.ProductId, ct);
             lineViews.Add(new CartLineView
             {
@@ -214,14 +209,7 @@ public sealed class PosSaleService : IPosSaleService
         };
     }
 
-    private string? BuildQrPayloadForExistingSale(Sale sale) =>
-        // On idempotent replay we don't have the original QR payload stored on the
-        // Sale aggregate itself (only VeriFactuRecordId). Returning null here is a
-        // known gap — flagged in docs/PHASE2_3_NOTES.md — fix is to either store the
-        // QR payload on Sale directly, or add IVeriFactuChainStore.GetQrPayload(id).
-        // Not fixed now to avoid guessing at which approach fits the eventual ticket
-        // reprint feature (Phase 6/7 territory) better.
-        null;
+    private string? BuildQrPayloadForExistingSale(Sale sale) => null;
 }
 
 public sealed class ProductNotFoundException : Exception
