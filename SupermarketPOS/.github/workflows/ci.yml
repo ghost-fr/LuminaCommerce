@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore
+
+      - name: Format check
+        run: dotnet format --verify-no-changes --no-restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Test - Domain
+        run: dotnet test tests/Lumina.Domain.Tests --no-build --configuration Release
+
+      - name: Test - Application
+        run: dotnet test tests/Lumina.Application.Tests --no-build --configuration Release
+
+      - name: Test - Fiscal (blocking — hash chain / QR fixed vectors)
+        run: dotnet test tests/Lumina.Fiscal.Tests --no-build --configuration Release
+
+      - name: Test - Infrastructure (blocking — real-SQLite concurrency proofs)
+        run: dotnet test tests/Lumina.Infrastructure.Tests --no-build --configuration Release
+
+      - name: Test - POS UI ViewModels
+        run: dotnet test tests/Lumina.Pos.UI.Tests --no-build --configuration Release
+
+  # Fiscal tests are already blocking as part of build-and-test above (the job fails
+  # if any step fails). This second job exists only to make the requirement visible
+  # as a named required status check in branch protection settings.
+  fiscal-gate-status:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo "Fiscal test gate passed — safe to merge."
