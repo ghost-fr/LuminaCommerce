@@ -94,7 +94,7 @@ public partial class ShellViewModel : ObservableObject
         StatusText = $"{session.DisplayName}  ·  tienda {session.StoreId.ToString()[..8]}…";
 
         if (CanOperateRegister)
-            NavigateRegister();
+            _ = NavigateRegisterAsync();
         else if (CanBrowseCatalogue)
             NavigateCatalogue();
         else if (CanManageStock)
@@ -118,12 +118,35 @@ public partial class ShellViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void NavigateRegister()
+    private async Task NavigateRegisterAsync()
     {
         if (!CanOperateRegister || _auth.CurrentSession is null) return;
+
         ActiveNav = "register";
         HeaderTitle = "Caja / TPV";
-        CurrentContent = new PosCartViewModel(_pos, _auth.CurrentSession, _printer, _scale, registerId: null);
+
+        var session = _auth.CurrentSession;
+        Guid? registerId = null;
+        Guid? cartId = null;
+
+        try
+        {
+            registerId = await _pos.GetOpenRegisterIdAsync(session.StoreId);
+            cartId = await _pos.CreateCartAsync(session.StoreId);
+        }
+        catch
+        {
+            // Backend bootstrap failed — POS still opens in local demo mode.
+        }
+
+        CurrentContent = new PosCartViewModel(
+            _pos, session, _printer, _scale,
+            registerId: registerId,
+            cartId: cartId);
+
+        StatusText = registerId is null
+            ? $"{session.DisplayName}  ·  caja local (sin registro abierto)"
+            : $"{session.DisplayName}  ·  caja {registerId.Value.ToString()[..8]}…";
     }
 
     [RelayCommand]
