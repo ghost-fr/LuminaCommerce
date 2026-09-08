@@ -106,12 +106,48 @@ public partial class PosCartViewModel : ObservableObject
         _scale = scale;
         RegisterId = registerId ?? Guid.Empty;
 
-        // Until catalogue is seeded with products, operate as a local till so
-        // department keys and any barcode can complete a ticket.
-        _usingLocalCart = true;
-        CartId = cartId is { } id && id != Guid.Empty ? id : Guid.NewGuid();
-        StatusMessage = "Listo — pulse sección o escanee código";
+        if (cartId is { } id && id != Guid.Empty)
+        {
+            CartId = id;
+            _usingLocalCart = false;
+            StatusMessage = RegisterId == Guid.Empty
+                ? "Cart listo · sin registro abierto (cobro local si hace falta)"
+                : "Listo — pulse sección o escanee código";
+        }
+        else
+        {
+            _usingLocalCart = true;
+            CartId = Guid.NewGuid();
+            StatusMessage = "Modo local — pulse sección o escanee código";
+            _ = BootstrapBackendCartAsync();
+        }
+
         _ = RefreshDeviceStatusAsync();
+        NotifyCommands();
+    }
+
+    private async Task BootstrapBackendCartAsync()
+    {
+        try
+        {
+            if (RegisterId == Guid.Empty)
+            {
+                var open = await _pos.GetOpenRegisterIdAsync(_session.StoreId);
+                if (open is { } rid)
+                    RegisterId = rid;
+            }
+
+            CartId = await _pos.CreateCartAsync(_session.StoreId);
+            _usingLocalCart = false;
+            StatusMessage = "Listo para escanear";
+        }
+        catch
+        {
+            CartId = Guid.NewGuid();
+            _usingLocalCart = true;
+            StatusMessage = "Modo local · listo para escanear";
+        }
+        OnPropertyChanged(nameof(RegisterLabel));
         NotifyCommands();
     }
 
@@ -140,7 +176,8 @@ public partial class PosCartViewModel : ObservableObject
         _currentIdempotencyKey = Guid.NewGuid();
         _usingLocalCart = true;
         CartId = Guid.NewGuid();
-        StatusMessage = "Nuevo ticket — pulse sección o escanee";
+        StatusMessage = "Nuevo ticket…";
+        _ = BootstrapBackendCartAsync();
         OnPropertyChanged(nameof(RegisterLabel));
         NotifyCommands();
     }
@@ -161,7 +198,6 @@ public partial class PosCartViewModel : ObservableObject
         }
     }
 
-    /// <summary>Department pad: FRUTA, PAN, CERVEZA, …</summary>
     [RelayCommand]
     private void AddQuickProduct(string? key)
     {
@@ -209,7 +245,6 @@ public partial class PosCartViewModel : ObservableObject
                 }
             }
 
-            // Local: always works — demo price from barcode digits
             var price = DemoUnitPrice(code);
             AddPricedLocalLine(code, DemoProductName(code), price, qty);
             BarcodeInput = string.Empty;
@@ -472,7 +507,30 @@ public partial class PosCartViewModel : ObservableObject
             if (PaymentLabel == "—")
                 PaymentLabel = TenderCard > 0 && TenderCash > 0 ? "Mixto" : TenderCard > 0 ? "Tarjeta" : "Efectivo";
 
-            // Local ticket always available for training / empty catalogue
+            if (!_usingLocalCart && RegisterId != Guid.Empty)
+            {
+                try
+                {
+                    var request = new CompleteSaleRequest(RegisterId, null, BuildTenders(), _currentIdempotencyKey);
+                    var result = await _pos.CompleteSaleAsync(CartId, request);
+                    if (result.Status is CompleteSaleStatus.Success or CompleteSaleStatus.SuccessPendingSubmission)
+                    {
+                        FinishSale(result.TicketNumber, result.QrPayload,
+                            result.Status == CompleteSaleStatus.Success ? "Registrado" : "Pendiente AEAT");
+                        await PrintReceiptAsync();
+                        return;
+                    }
+
+                    IsError = true;
+                    StatusMessage = result.RejectionReason ?? result.RejectionCode.ToString();
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    StatusMessage = $"Backend: {ex.Message} — cobro local";
+                }
+            }
+
             _localTicketSeq++;
             var ticket = $"T-{DateTime.Now:yyyyMMdd}-{_localTicketSeq:D4}";
             var qr = $"https://www2.agenciatributaria.gob.es/wlpl/TIKE-CONT/ValidarQR?nif=&numserie={ticket}&fecha={DateTime.Now:dd-MM-yyyy}&importe={Total:F2}";
@@ -485,6 +543,15 @@ public partial class PosCartViewModel : ObservableObject
             StatusMessage = ex.Message;
         }
         finally { IsBusy = false; NotifyCommands(); }
+    }
+
+    private IReadOnlyList<TenderLine> BuildTenders()
+    {
+        var list = new List<TenderLine>();
+        if (TenderCash > 0) list.Add(new TenderLine(TenderType.Cash, TenderCash));
+        if (TenderCard > 0) list.Add(new TenderLine(TenderType.Card, TenderCard));
+        if (list.Count == 0) list.Add(new TenderLine(TenderType.Cash, Total));
+        return list;
     }
 
     private void FinishSale(string? ticket, string? qr, string vfEstado)
