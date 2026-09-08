@@ -38,7 +38,7 @@
       </Grid>
     </Border>
 
-    <Grid Grid.Row="1" ColumnDefinitions="*,320,210">
+    <Grid Grid.Row="1" ColumnDefinitions="*,340,240">
 
       <Grid Grid.Column="0" RowDefinitions="Auto,*,120" Margin="0,0,8,0">
 
@@ -166,55 +166,55 @@
         </Border>
 
         <!-- Teclado: spacing via Margin on each button (Avalonia Grid has no RowSpacing) -->
-        <Border Grid.Row="2" Background="#111827" CornerRadius="10" Padding="6">
-          <Grid RowDefinitions="34,*,*,*,*,42" ColumnDefinitions="*,*,*">
+        <Border Grid.Row="2" Background="#111827" CornerRadius="10" Padding="10">
+          <Grid RowDefinitions="44,*,*,*,*,52" ColumnDefinitions="*,*,*">
 
-            <Button Grid.Row="0" Grid.Column="0" Content="Cantidad" Margin="2"
+            <Button Grid.Row="0" Grid.Column="0" Content="Cantidad" Margin="4,3"
                     Command="{Binding SetKeypadTargetCommand}" CommandParameter="Quantity"
                     FontSize="12" FontWeight="SemiBold" CornerRadius="6"
                     Background="#374151" Foreground="#F1F5F9" />
-            <Button Grid.Row="0" Grid.Column="1" Content="Precio" Margin="2"
+            <Button Grid.Row="0" Grid.Column="1" Content="Precio" Margin="4,3"
                     Command="{Binding SetKeypadTargetCommand}" CommandParameter="Price"
                     FontSize="12" FontWeight="SemiBold" CornerRadius="6"
                     Background="#374151" Foreground="#F1F5F9" />
-            <Button Grid.Row="0" Grid.Column="2" Content="Dto." Margin="2"
+            <Button Grid.Row="0" Grid.Column="2" Content="Dto." Margin="4,3"
                     Command="{Binding SetKeypadTargetCommand}" CommandParameter="Discount"
                     FontSize="12" FontWeight="SemiBold" CornerRadius="6"
                     Background="#374151" Foreground="#F1F5F9" />
 
-            <Button Grid.Row="1" Grid.Column="0" Content="7" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="7"
+            <Button Grid.Row="1" Grid.Column="0" Content="7" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="7"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="1" Grid.Column="1" Content="8" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="8"
+            <Button Grid.Row="1" Grid.Column="1" Content="8" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="8"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="1" Grid.Column="2" Content="9" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="9"
-                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-
-            <Button Grid.Row="2" Grid.Column="0" Content="4" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="4"
-                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="2" Grid.Column="1" Content="5" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="5"
-                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="2" Grid.Column="2" Content="6" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="6"
+            <Button Grid.Row="1" Grid.Column="2" Content="9" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="9"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
 
-            <Button Grid.Row="3" Grid.Column="0" Content="1" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="1"
+            <Button Grid.Row="2" Grid.Column="0" Content="4" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="4"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="3" Grid.Column="1" Content="2" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="2"
+            <Button Grid.Row="2" Grid.Column="1" Content="5" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="5"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="3" Grid.Column="2" Content="3" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="3"
+            <Button Grid.Row="2" Grid.Column="2" Content="6" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="6"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
 
-            <Button Grid.Row="4" Grid.Column="0" Content="0" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="0"
+            <Button Grid.Row="3" Grid.Column="0" Content="1" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="1"
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="4" Grid.Column="1" Content="00" Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter="00"
+            <Button Grid.Row="3" Grid.Column="1" Content="2" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="2"
+                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="3" Grid.Column="2" Content="3" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="3"
+                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
+
+            <Button Grid.Row="4" Grid.Column="0" Content="0" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="0"
+                    FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
+            <Button Grid.Row="4" Grid.Column="1" Content="00" Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter="00"
                     FontSize="20" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
-            <Button Grid.Row="4" Grid.Column="2" Content="," Margin="2" Command="{Binding KeypadDigitCommand}" CommandParameter=","
+            <Button Grid.Row="4" Grid.Column="2" Content="," Margin="4" Command="{Binding KeypadDigitCommand}" CommandParameter=","
                     FontSize="24" FontWeight="SemiBold" CornerRadius="8" Background="#1E293B" Foreground="#F8FAFC" />
 
-            <Button Grid.Row="5" Grid.Column="0" Content="Borrar" Margin="2" Command="{Binding KeypadClearCommand}"
+            <Button Grid.Row="5" Grid.Column="0" Content="Borrar" Margin="4,3" Command="{Binding KeypadClearCommand}"
                     FontSize="13" FontWeight="Bold" CornerRadius="8" Background="#4B5563" Foreground="White" />
-            <Button Grid.Row="5" Grid.Column="1" Content="⌫" Margin="2" Command="{Binding KeypadBackspaceCommand}"
+            <Button Grid.Row="5" Grid.Column="1" Content="⌫" Margin="4,3" Command="{Binding KeypadBackspaceCommand}"
                     FontSize="18" FontWeight="Bold" CornerRadius="8" Background="#4B5563" Foreground="White" />
-            <Button Grid.Row="5" Grid.Column="2" Content="INTRO" Margin="2" Command="{Binding KeypadEnterCommand}"
+            <Button Grid.Row="5" Grid.Column="2" Content="INTRO" Margin="4,3" Command="{Binding KeypadEnterCommand}"
                     FontSize="13" FontWeight="Bold" CornerRadius="8" Background="#7C3AED" Foreground="White" />
           </Grid>
         </Border>

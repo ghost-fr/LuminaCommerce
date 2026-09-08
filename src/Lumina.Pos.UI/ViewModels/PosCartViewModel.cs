@@ -317,15 +317,15 @@ public partial class PosCartViewModel : ObservableObject
     [RelayCommand]
     private void KeypadDigit(string? digit)
     {
-        if (SaleCompleted || digit is null) return;
+        if (SaleCompleted || digit is null || KeypadBuffer.Length >= 18) return;
         if (digit is "," or ".")
         {
             if (!KeypadBuffer.Contains('.') && !KeypadBuffer.Contains(','))
                 KeypadBuffer += ".";
             return;
         }
-        if (digit == "00") { KeypadBuffer += "00"; return; }
-        KeypadBuffer += digit;
+        if (digit is not ("0" or "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" or "00")) return;
+        KeypadBuffer = (KeypadBuffer + digit)[..Math.Min(KeypadBuffer.Length + digit.Length, 18)];
     }
 
     [RelayCommand] private void KeypadClear() => KeypadBuffer = string.Empty;
@@ -357,6 +357,23 @@ public partial class PosCartViewModel : ObservableObject
                 if (decimal.TryParse(KeypadBuffer.Replace(',', '.'),
                         NumberStyles.Number, CultureInfo.InvariantCulture, out var qty) && qty > 0)
                     QuantityInput = qty;
+                break;
+            case KeypadTarget.Price:
+                if (decimal.TryParse(KeypadBuffer.Replace(',', '.'),
+                        NumberStyles.Number, CultureInfo.InvariantCulture, out var price) && price >= 0)
+                {
+                    if (SelectedLine is not null)
+                    {
+                        var line = _localLines.Find(l => l.ProductId == SelectedLine.ProductId);
+                        if (line is not null)
+                        {
+                            line.UnitPrice = price;
+                            line.LineTotal = Math.Round(price * line.Quantity, 2);
+                            RefreshLocalTotals();
+                        }
+                    }
+                    StatusMessage = "Precio actualizado";
+                }
                 break;
             case KeypadTarget.Barcode:
                 if (!string.IsNullOrWhiteSpace(KeypadBuffer))
