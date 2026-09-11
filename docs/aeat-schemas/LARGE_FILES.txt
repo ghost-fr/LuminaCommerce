@@ -1,0 +1,12 @@
+Large schema files (SuministroInformacion.xsd ~49KB, EventosSIF.xsd ~31KB)
+were not fully committed via MCP in this pass to avoid truncated uploads.
+
+Canonical copies for Phase 9 work:
+  1) Google Drive: aeat-official-schemas-mirror.zip
+  2) Upstream mirror: https://github.com/hectorsipe/aeat-verifactu
+
+Also on this branch:
+  - SistemaFacturacion.wsdl / other smaller XSDs — apply from Drive zip locally:
+      unzip aeat-official-schemas-mirror.zip -d docs/
+
+Before production: diff against official AEAT sede package (browser download).

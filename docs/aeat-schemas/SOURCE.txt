@@ -1,0 +1,4 @@
+Third-party mirror only.
+Drive zip: aeat-official-schemas-mirror.zip (Claude 2026-09-11)
+Upstream: github.com/hectorsipe/aeat-verifactu
+Not an official AEAT distribution.
