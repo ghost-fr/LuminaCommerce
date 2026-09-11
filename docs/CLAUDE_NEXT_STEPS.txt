@@ -1,9 +1,73 @@
-See Drive CLAUDE_NEXT_STEPS.txt / Grok audit 2026-09-11.
+================================================================================
+CLAUDE — NEXT STEPS (updated 12 Sep 2026 by Grok after Drive + GitHub audit)
+================================================================================
+Repo:   ghost-fr/LuminaCommerce
+Owner:  Ahmad
 
-Branch feat/backend/ticket-sequence: Claude Drive ticket-sequence patch applied to GitHub.
-Branch feat/backend/aeat-hash-integrity: apply next (8-field hash + integrity).
+Read docs/CLAUDE_VERIFIED_FINDINGS_2026-09-11.txt before coding.
 
-VERIFY before merge:
-  dotnet build
-  dotnet test tests/Lumina.Infrastructure.Tests
-  dotnet ef database update --startup-project src/Lumina.Pos.UI
+--------------------------------------------------------------------------------
+1. CURRENT GITHUB STATE
+--------------------------------------------------------------------------------
+
+Already on GitHub (feature branches — NOT merged to main):
+
+  feat/backend/ticket-sequence
+    - TicketSequences + atomic NextTicketNumberAsync
+    - EF configs, DbContext, migration stub, concurrency tests
+
+  feat/backend/aeat-hash-integrity
+    - 8-field HashChainService + VeriFactuRecordInput
+    - Expanded fiscal ports + reconstructed FiscalRecordGenerator
+    - VeriFactuChainStore link API
+
+  feat/backend/aeat-schemas-mirror
+    - docs/aeat-schemas/* (third-party WSDL/XSD mirror)
+    - this file + verified findings
+
+  feat/ui/through-phase4 — training POS (Grok lane — do not rewrite XAML)
+
+  main — still COUNT(*)+1 and 5-field hash. Not fiscal-ready.
+
+--------------------------------------------------------------------------------
+2. YOUR IMMEDIATE WORK
+--------------------------------------------------------------------------------
+
+A. Make fiscal branches BUILD
+  [ ] checkout feat/backend/aeat-hash-integrity (rebase ticket-sequence if needed)
+  [ ] Apply remaining Drive aeat zip pieces Grok could not fully land:
+        PosSaleService.cs (InvoiceType + TotalTaxAmount on FiscalRecordRequest)
+        Fiscal tests + PosSaleServiceTests
+  [ ] REVIEW reconstructed FiscalRecordGenerator.cs (was 0 bytes in Drive zip)
+  [ ] Prefer: dotnet ef migrations add AddTicketSequences
+  [ ] dotnet build && dotnet test
+  [ ] PR ticket-sequence → main, then aeat-hash-integrity → main
+
+B. QR comment: findings say shape is likely right; still get official QR PDF
+   before production invoices.
+
+C. SeedDev backlog CLOSED — already grants capabilities + opens Register.
+   Optional: delete nested SupermarketPOS/ stale tree.
+
+D. Do NOT live-submit until cert + official schema PDF diff + SOAP client.
+
+--------------------------------------------------------------------------------
+3. PHASE 9 SUBMISSION CLIENT (after A is green)
+--------------------------------------------------------------------------------
+
+Use docs/aeat-schemas/. Preprod: prewww1/prewww10.aeat.es only.
+  1) XML serialize alta from sale + hash
+  2) SOAP client
+  3) mTLS cert config (no secrets in git)
+  4) Map RespuestaSuministro → domain/UI
+
+--------------------------------------------------------------------------------
+4. ONE-LINE ORDER
+--------------------------------------------------------------------------------
+
+  Build+test aeat-hash-integrity → PR main → Phase 9 SOAP with schemas →
+  preprod only after cert. Not ready for AEAT wire testing until client exists.
+
+================================================================================
+Grok, 12 Sep 2026
+================================================================================

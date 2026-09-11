@@ -1,0 +1,55 @@
+================================================================================
+CLAUDE — VERIFICATION PASS ON THE TWO PENDING PATCHES + REAL AEAT SCHEMAS
+================================================================================
+Date: 2026-09-11
+Context: continuing from CLAUDE_AEAT_TEST_READINESS.txt and
+CLAUDE_DEBUG_TICKET_SEQUENCE.txt. I still have no .NET SDK / nuget access in
+this sandbox, so nothing below was compiled — but I could reach real external
+sources this time, which lets me upgrade several items from "unverified
+guess" to "independently cross-checked."
+
+--------------------------------------------------------------------------------
+1. WHAT I VERIFIED AGAINST REAL SOURCES (new this session)
+--------------------------------------------------------------------------------
+
+a) Hash-chain fix (claude-aeat-test-readiness.zip) is confirmed correct.
+   sede.agenciatributaria.gob.es is genuinely robots-blocked. BUT a
+   third-party GitHub mirror of AEAT's actual WSDL/XSD files exists:
+   github.com/hectorsipe/aeat-verifactu. SuministroInformacion.xsd's
+   RegistroFacturacionAltaType confirms the exact 8-field set the patch
+   already implements: IDEmisorFactura, NumSerieFactura, FechaExpedicionFactura,
+   TipoFactura, CuotaTotal, ImporteTotal, Encadenamiento (RegistroAnterior),
+   FechaHoraHusoGenRegistro. Also corroborated by Kreyo.VerifactuHashCalculator
+   NuGet example field set.
+   -> main still has only 5 of 8 fields. Patch is aimed correctly.
+
+b) QR payload builder is closer to correct than its own comment claims.
+   Independent sources citing Orden HAC/1177/2024 ch. VIII confirm: 4 query
+   params (nif, numserie, fecha, importe), DD-MM-YYYY, decimal amount — matches
+   current code. Base URL structure matches examples. Soften warning after
+   official PDF check; not blind anymore.
+
+c) Ticket-number race: SaleRepository on main still COUNT(*)+1. Fix is right.
+
+d) SeedDev discrepancy — RESOLVED. SeedDev already grants PosOperateRegister
+   and opens a Register. Drop from backlog. Nested SupermarketPOS/ is stale
+   partial copy — delete when convenient.
+
+--------------------------------------------------------------------------------
+2. NEW ASSET
+--------------------------------------------------------------------------------
+aeat-official-schemas-mirror.zip / docs/aeat-schemas/ — third-party mirror of
+WSDL/XSD (not direct AEAT download). Diff against official when browsing sede.
+
+Endpoints: Production www1/www10.agenciatributaria.gob.es;
+Preprod prewww1/prewww10.aeat.es (cert variants on *10).
+
+--------------------------------------------------------------------------------
+3. STILL BLOCKED
+--------------------------------------------------------------------------------
+[ ] dotnet build/test on a real machine before merge
+[ ] Qualified electronic certificate
+[ ] Official PDFs from AEAT (robots-blocked to bots)
+[ ] SOAP submission client still unwritten
+
+================================================================================
