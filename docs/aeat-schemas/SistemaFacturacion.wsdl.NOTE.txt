@@ -1,0 +1,7 @@
+Full WSDL is in Drive aeat-official-schemas-mirror.zip and upstream
+github.com/hectorsipe/aeat-verifactu (SistemaFacturacion.wsdl).
+
+Copy into docs/aeat-schemas/SistemaFacturacion.wsdl locally for Phase 9.
+
+Preprod hosts: prewww1.aeat.es / prewww10.aeat.es
+Production: www1.agenciatributaria.gob.es / www10.agenciatributaria.gob.es
