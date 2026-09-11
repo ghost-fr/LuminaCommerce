@@ -30,7 +30,6 @@ public record SaleLineJson(
 
 public record SaleTenderJson(string TenderType, decimal Amount, string? Reference);
 
-/// <summary>Per-store gap-free ticket sequence (SaleRepository.NextTicketNumberAsync).</summary>
 public class TicketSequenceRecord
 {
     public Guid StoreId { get; set; }
@@ -42,5 +41,7 @@ public class VeriFactuChainRecord
     public Guid SifBoundaryId { get; set; }
     public Guid RecordId { get; set; }
     public string RecordHash { get; set; } = string.Empty;
+    public string PreviousRecordHash { get; set; } = string.Empty;
+    public DateTimeOffset RecordGeneratedAt { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
