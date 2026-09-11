@@ -23,10 +23,18 @@ public class SaleRecordConfiguration : IEntityTypeConfiguration<SaleRecord>
         b.Property(s => s.TicketNumber).IsRequired().HasMaxLength(50);
         b.Property(s => s.LinesJson).HasColumnType("TEXT");
         b.Property(s => s.TendersJson).HasColumnType("TEXT");
-        // Sale is append-only/immutable per domain invariant — no updates expected.
-        // Index for the idempotency-key lookup (hot path on every completion retry):
         b.HasIndex(s => s.IdempotencyKey).IsUnique();
         b.HasIndex(s => new { s.StoreId, s.TicketNumber }).IsUnique();
+    }
+}
+
+public class TicketSequenceRecordConfiguration : IEntityTypeConfiguration<TicketSequenceRecord>
+{
+    public void Configure(EntityTypeBuilder<TicketSequenceRecord> b)
+    {
+        b.ToTable("TicketSequences");
+        b.HasKey(t => t.StoreId);
+        b.Property(t => t.NextNumber).IsRequired();
     }
 }
 
@@ -45,7 +53,6 @@ public class VeriFactuChainRecordConfiguration : IEntityTypeConfiguration<VeriFa
     public void Configure(EntityTypeBuilder<VeriFactuChainRecord> b)
     {
         b.ToTable("VeriFactuChain");
-        // Composite key: one row per record, ordered by CreatedAt within a boundary.
         b.HasKey(v => v.RecordId);
         b.HasIndex(v => new { v.SifBoundaryId, v.CreatedAt });
     }

@@ -1,0 +1,9 @@
+See Drive CLAUDE_NEXT_STEPS.txt / Grok audit 2026-09-11.
+
+Branch feat/backend/ticket-sequence: Claude Drive ticket-sequence patch applied to GitHub.
+Branch feat/backend/aeat-hash-integrity: apply next (8-field hash + integrity).
+
+VERIFY before merge:
+  dotnet build
+  dotnet test tests/Lumina.Infrastructure.Tests
+  dotnet ef database update --startup-project src/Lumina.Pos.UI

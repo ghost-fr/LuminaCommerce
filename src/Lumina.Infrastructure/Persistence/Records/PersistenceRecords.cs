@@ -1,19 +1,5 @@
 namespace Lumina.Infrastructure.Persistence.Records;
 
-/// <summary>
-/// Plain EF-mapped persistence shapes for Cart and Sale. Deliberately NOT the domain
-/// aggregates themselves — Cart/Sale use private setters and constructor invariants
-/// (per the blueprint's "rich domain, no DataRows" principle), which EF Core can map
-/// via backing fields but only after verifying the mapping compiles and round-trips
-/// with a live `dotnet ef` tool (not available in the environment that wrote this).
-/// Instead: persist a flat/JSON projection here, and have the repository translate
-/// to/from the real aggregate using its public API (Cart's constructor + AddLine +
-/// SetCustomer are all public, so this requires no domain changes). Sale is
-/// reconstructed via its public constructor + AttachVeriFactuRecord.
-/// This trades a small amount of JSON (de)serialization for avoiding a fragile,
-/// unverified EF mapping of aggregate internals — worth revisiting once `dotnet ef`
-/// is available locally and the mapping can actually be tested.
-/// </summary>
 public class CartRecord
 {
     public Guid Id { get; set; }
@@ -43,6 +29,13 @@ public record SaleLineJson(
     decimal LineSubtotal, decimal LineVat, decimal LineTotal, string? PromotionCode);
 
 public record SaleTenderJson(string TenderType, decimal Amount, string? Reference);
+
+/// <summary>Per-store gap-free ticket sequence (SaleRepository.NextTicketNumberAsync).</summary>
+public class TicketSequenceRecord
+{
+    public Guid StoreId { get; set; }
+    public long NextNumber { get; set; }
+}
 
 public class VeriFactuChainRecord
 {

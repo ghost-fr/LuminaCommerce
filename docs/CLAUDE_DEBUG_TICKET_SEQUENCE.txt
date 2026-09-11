@@ -1,0 +1,2 @@
+See original Drive note. Ticket sequence patch uploaded to feat/backend/ticket-sequence (2026-09-11).
+Hand-written migration may differ from dotnet ef migrations add — please regenerate and compare.
