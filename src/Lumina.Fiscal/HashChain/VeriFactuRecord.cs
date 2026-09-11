@@ -1,24 +1,22 @@
 namespace Lumina.Fiscal.HashChain;
 
 /// <summary>
-/// Fields committed into the hash chain. This is a best-effort field set based on
-/// the publicly known VeriFactu structure (issuer NIF, invoice ID, date, total,
-/// previous record's hash) — NOT verified against the final published AEAT
-/// technical specification (the "Reglamento" / XSD schemas). Flagged explicitly in
-/// docs/PHASE2_3_NOTES.md: do not treat this as compliance-verified until checked
-/// against the actual AEAT documentation before any production submission.
+/// Fields committed into the hash chain, per Orden HAC/1177/2024, art. 13.1.a).
 /// </summary>
 public sealed record VeriFactuRecordInput(
     string IssuerNif,
     string InvoiceSeriesAndNumber,
     DateOnly IssueDate,
+    string InvoiceType,
+    decimal TotalTaxAmount,
     decimal TotalAmount,
-    string PreviousRecordHash); // "" (empty string) for the very first record in a chain
+    string PreviousRecordHash,
+    DateTimeOffset RecordGeneratedAt);
 
 public sealed class VeriFactuRecord
 {
     public Guid Id { get; }
-    public Guid SifBoundaryId { get; } // the tenant/store/terminal this chain is scoped to
+    public Guid SifBoundaryId { get; }
     public VeriFactuRecordInput Input { get; }
     public string RecordHash { get; }
     public DateTimeOffset GeneratedAt { get; }

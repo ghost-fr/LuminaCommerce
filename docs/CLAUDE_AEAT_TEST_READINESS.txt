@@ -1,0 +1,8 @@
+Claude AEAT readiness notes (from Drive) uploaded with branch feat/backend/aeat-hash-integrity.
+
+IMPORTANT:
+- FiscalRecordGenerator.cs was CORRUPTED in the Drive zip; reconstructed on GitHub to match ports.
+- HashChainServiceTests / full PosSaleService.cs from zip still need manual apply if tests fail.
+- Run: dotnet test tests/Lumina.Fiscal.Tests
+- QR still structural placeholder — diff against AEAT PDF before production.
+- No AEAT SOAP client yet — needs cert + WSDL from sede.agenciatributaria.gob.es.

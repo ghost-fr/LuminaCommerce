@@ -3,10 +3,8 @@ using Lumina.Application.Ports;
 namespace Lumina.Fiscal.HashChain;
 
 /// <summary>
-/// Concrete implementation of Lumina.Application.Ports.IFiscalRecordGenerator.
-/// Fetches the last hash for the SIF boundary, computes the new chained hash,
-/// builds the QR payload, persists the new chain link, and returns everything
-/// PosSaleService needs to attach to the Sale aggregate.
+/// Chain integrity pre-check + 8-field hash generation.
+/// FiscalRecordGenerator.cs was corrupted in Drive zip; reconstructed to match ports.
 /// </summary>
 public sealed class FiscalRecordGenerator : IFiscalRecordGenerator
 {
@@ -24,22 +22,51 @@ public sealed class FiscalRecordGenerator : IFiscalRecordGenerator
     public async Task<FiscalRecordResult> GenerateAsync(
         Guid sifBoundaryId, FiscalRecordRequest request, CancellationToken ct = default)
     {
-        var previousHash = await _chainStore.GetLastHashAsync(sifBoundaryId, ct);
+        var integrityOk = true;
+        string? integrityIssue = null;
+
+        var last = await _chainStore.GetLastLinkAsync(sifBoundaryId, ct);
+        if (last is not null)
+        {
+            if (last.RecordGeneratedAt > DateTimeOffset.UtcNow.AddMinutes(5))
+            {
+                integrityOk = false;
+                integrityIssue = $"Last chain record timestamp is ahead of now ({last.RecordGeneratedAt:O}).";
+            }
+
+            var second = await _chainStore.GetSecondToLastLinkAsync(sifBoundaryId, ct);
+            if (second is not null &&
+                !string.Equals(last.PreviousRecordHash, second.RecordHash, StringComparison.Ordinal))
+            {
+                integrityOk = false;
+                integrityIssue = (integrityIssue is null ? "" : integrityIssue + " ") +
+                    "Last link PreviousRecordHash does not match prior RecordHash.";
+            }
+        }
+
+        var previousHash = last?.RecordHash ?? string.Empty;
+        var generatedAt = DateTimeOffset.Now;
 
         var input = new VeriFactuRecordInput(
-            request.IssuerNif, request.InvoiceSeriesAndNumber, request.IssueDate,
-            request.TotalAmount, previousHash);
+            request.IssuerNif,
+            request.InvoiceSeriesAndNumber,
+            request.IssueDate,
+            request.InvoiceType,
+            request.TotalTaxAmount,
+            request.TotalAmount,
+            previousHash,
+            generatedAt);
 
         var recordId = Guid.NewGuid();
         var recordHash = _hashChain.ComputeHash(input);
         var qrPayload = _qrBuilder.Build(input);
 
-        // Append happens here, inside record generation, so the chain link and the
-        // hash it produced can never drift apart — no caller can compute a hash and
-        // forget to persist it (or persist without computing), which would silently
-        // corrupt the chain for every subsequent record.
-        await _chainStore.AppendAsync(sifBoundaryId, recordId, recordHash, ct);
+        await _chainStore.AppendAsync(
+            sifBoundaryId, recordId, recordHash, previousHash, generatedAt, ct);
 
-        return new FiscalRecordResult(recordId, recordHash, qrPayload);
+        if (!integrityOk)
+            Console.Error.WriteLine($"[VeriFactu chain integrity] {integrityIssue}");
+
+        return new FiscalRecordResult(recordId, recordHash, qrPayload, integrityOk, integrityIssue);
     }
 }
