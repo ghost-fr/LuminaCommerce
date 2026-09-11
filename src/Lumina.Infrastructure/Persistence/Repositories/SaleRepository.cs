@@ -1,7 +1,9 @@
+using System.Data;
 using System.Text.Json;
 using Lumina.Application.Ports;
 using Lumina.Domain.Sales;
 using Lumina.Infrastructure.Persistence.Records;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace Lumina.Infrastructure.Persistence.Repositories;
@@ -40,16 +42,34 @@ public class SaleRepository : ISaleRepository
 
     public async Task<string> NextTicketNumberAsync(Guid storeId, CancellationToken ct = default)
     {
-        // Sequential, gap-free within a store is a fiscal requirement (blueprint
-        // §8, commercial document numbering). This implementation counts existing
-        // sales for the store — correct for single-writer scenarios but NOT safe
-        // under concurrent completions on multiple registers hitting the same store
-        // simultaneously (a classic race: two sales both read count=41, both compute
-        // "T-000042"). Needs a proper sequence (SQLite: a dedicated counter table
-        // with a transaction, or a DB-native sequence on Postgres) before this goes
-        // near a multi-register store in production. Flagged, not silently risked.
-        var count = await _db.SaleRecords.CountAsync(s => s.StoreId == storeId, ct);
-        return $"T-{count + 1:D6}";
+        // Atomic per-store sequence — see Claude Drive note CLAUDE_DEBUG_TICKET_SEQUENCE.txt
+        var connection = (SqliteConnection)_db.Database.GetDbConnection();
+        if (connection.State != ConnectionState.Open)
+            await connection.OpenAsync(ct);
+
+        const int maxAttempts = 5;
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText =
+                    """
+                    INSERT INTO TicketSequences (StoreId, NextNumber) VALUES ($storeId, 2)
+                    ON CONFLICT(StoreId) DO UPDATE SET NextNumber = NextNumber + 1
+                    RETURNING NextNumber - 1;
+                    """;
+                command.Parameters.AddWithValue("$storeId", storeId.ToString());
+
+                var result = await command.ExecuteScalarAsync(ct);
+                var number = Convert.ToInt64(result);
+                return $"T-{number:D6}";
+            }
+            catch (SqliteException ex) when (ex.SqliteErrorCode == 5 /* SQLITE_BUSY */ && attempt < maxAttempts)
+            {
+                await Task.Delay(25 * attempt, ct);
+            }
+        }
     }
 
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
@@ -63,9 +83,6 @@ public class SaleRepository : ISaleRepository
             .Select(t => new SaleTender(t.TenderType, t.Amount, t.Reference))
             .ToList();
 
-        // Full constructor overload preserves the original CompletedAt and
-        // VeriFactuRecordId instead of stamping "now" and requiring a separate
-        // AttachVeriFactuRecord call — see Sale.cs for why that distinction matters.
         return new Sale(
             record.Id, record.StoreId, record.RegisterId, record.CustomerId, record.TicketNumber,
             lines, tenders, record.IdempotencyKey,
