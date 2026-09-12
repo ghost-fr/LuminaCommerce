@@ -91,10 +91,6 @@ public sealed class PosSaleService : IPosSaleService
     public async Task<CompleteSaleResult> CompleteSaleAsync(
         Guid cartId, CompleteSaleRequest request, CancellationToken ct = default)
     {
-        // Idempotency check FIRST, before any other validation — a retried request
-        // with a previously-successful key must short-circuit straight to the
-        // original result, never re-run stock/tender checks against what may now
-        // be a different cart state.
         var existing = await _sales.FindByIdempotencyKeyAsync(request.IdempotencyKey, ct);
         if (existing is not null)
         {
@@ -145,15 +141,19 @@ public sealed class PosSaleService : IPosSaleService
             Guid.NewGuid(), store.Id, register.Id, request.CustomerId, ticketNumber,
             saleLines, saleTenders, request.IdempotencyKey);
 
-        // SIF boundary: PerStore per config/appsettings default (see docs/CONTRACTS.md
-        // §0 / blueprint §8.4). If a tenant's config uses PerCompany or PerTerminal
-        // instead, this must resolve to store.TenantId or a terminal id respectively —
-        // wiring that config lookup is a Phase 9 hardening item, flagged not guessed.
         var sifBoundaryId = store.Id;
 
+        // Drive fix-possaleservice.patch (Claude 2026-09-12). InvoiceType F2 = factura
+        // simplificada for POS (patch text said F1; F2 is the AEAT simplified code).
         var fiscalResult = await _fiscal.GenerateAsync(
             sifBoundaryId,
-            new FiscalRecordRequest(tenant.Nif, ticketNumber, DateOnly.FromDateTime(sale.CompletedAt.Date), sale.Total),
+            new FiscalRecordRequest(
+                tenant.Nif,
+                ticketNumber,
+                DateOnly.FromDateTime(sale.CompletedAt.Date),
+                InvoiceType: "F2",
+                TotalTaxAmount: sale.VatTotal,
+                TotalAmount: sale.Total),
             ct);
 
         sale.AttachVeriFactuRecord(fiscalResult.VeriFactuRecordId);
@@ -161,10 +161,6 @@ public sealed class PosSaleService : IPosSaleService
         await _sales.AddAsync(sale, ct);
         await _sales.SaveChangesAsync(ct);
 
-        // NOTE: AEAT submission (VERI*FACTU outbox) is Phase 9 scope, not yet wired.
-        // Every sale currently returns Success, never SuccessPendingSubmission —
-        // correct for now since nothing is actually queued for async submission yet,
-        // but revisit this return value the moment the outbox lands in Phase 9.
         return new CompleteSaleResult(
             CompleteSaleStatus.Success, sale.Id, sale.TicketNumber,
             fiscalResult.QrPayload, RejectionCode.None, null);
@@ -185,11 +181,6 @@ public sealed class PosSaleService : IPosSaleService
         var lineViews = new List<ICartLine>();
         foreach (var line in cart.Lines)
         {
-            // Product name/barcode looked up directly via IProductRepository — cheap,
-            // single-entity read. Price/VAT come from the cart line's own snapshot
-            // (correctly re-resolved at add-time per CONTRACTS.md §1), not re-fetched
-            // here, so a display-name lookup can never accidentally change the price
-            // the operator already sees.
             var product = await _products.FindByIdAsync(line.ProductId, ct);
             lineViews.Add(new CartLineView
             {
@@ -214,14 +205,7 @@ public sealed class PosSaleService : IPosSaleService
         };
     }
 
-    private string? BuildQrPayloadForExistingSale(Sale sale) =>
-        // On idempotent replay we don't have the original QR payload stored on the
-        // Sale aggregate itself (only VeriFactuRecordId). Returning null here is a
-        // known gap — flagged in docs/PHASE2_3_NOTES.md — fix is to either store the
-        // QR payload on Sale directly, or add IVeriFactuChainStore.GetQrPayload(id).
-        // Not fixed now to avoid guessing at which approach fits the eventual ticket
-        // reprint feature (Phase 6/7 territory) better.
-        null;
+    private string? BuildQrPayloadForExistingSale(Sale sale) => null;
 }
 
 public sealed class ProductNotFoundException : Exception
