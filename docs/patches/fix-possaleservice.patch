@@ -1,0 +1,21 @@
+diff --git a/src/Lumina.Application/Pos/PosSaleService.cs b/src/Lumina.Application/Pos/PosSaleService.cs
+index 2ca70d8..bc1a9fc 100644
+--- a/src/Lumina.Application/Pos/PosSaleService.cs
++++ b/src/Lumina.Application/Pos/PosSaleService.cs
+@@ -153,7 +153,13 @@ public sealed class PosSaleService : IPosSaleService
+ 
+         var fiscalResult = await _fiscal.GenerateAsync(
+             sifBoundaryId,
+-            new FiscalRecordRequest(tenant.Nif, ticketNumber, DateOnly.FromDateTime(sale.CompletedAt.Date), sale.Total),
++            new FiscalRecordRequest(
++                tenant.Nif,
++                ticketNumber,
++                DateOnly.FromDateTime(sale.CompletedAt.Date),
++                InvoiceType: "F2",
++                TotalTaxAmount: sale.VatTotal,
++                TotalAmount: sale.Total),
+             ct);
+
+--
+From Drive fix-possaleservice.patch (Claude 2026-09-12). Applied on
+feat/backend/aeat-hash-integrity. InvoiceType F2 = factura simplificada.

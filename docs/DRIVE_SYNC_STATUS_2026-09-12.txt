@@ -1,0 +1,36 @@
+================================================================================
+LUMINA — DRIVE vs GITHUB STATUS (12 Sep 2026)
+================================================================================
+
+DONE (on GitHub feature branches, not all merged to main)
+---------------------------------------------------------
+[x] UI training POS — feat/ui/through-phase4
+[x] Ticket sequence atomic numbering — feat/backend/ticket-sequence
+[x] 8-field AEAT hash + chain integrity ports — feat/backend/aeat-hash-integrity
+[x] PosSaleService FiscalRecordRequest arity fix — applied from Drive
+      fix-possaleservice.patch (commit on aeat-hash-integrity)
+      InvoiceType = F2 (simplified POS); TotalTaxAmount = sale.VatTotal
+[x] AEAT schema mirror docs — feat/backend/aeat-schemas-mirror
+[x] SeedDev grants capabilities + open register (verified findings)
+
+DRIVE ARTIFACTS (reference / Claude handoff)
+--------------------------------------------
+- fix-possaleservice.patch (applied)
+- feat-backend-*-DELTA.zip / aeat-schemas zips
+- CLAUDE_VERIFIED_FINDINGS_2026-09-11.txt
+- CLAUDE_NEXT_STEPS.txt
+- claude-aeat-test-readiness.zip / claude-fix-ticket-sequence.zip (source patches)
+
+LEFT
+----
+[ ] Merge ticket-sequence + aeat-hash-integrity → main (after local dotnet build/test)
+[ ] Rewrite HashChainServiceTests for 8-field vectors (Drive aeat zip had tests;
+    not fully landed on GitHub)
+[ ] Regenerate EF migration with dotnet ef (prefer over hand-written)
+[ ] Phase 9: SOAP client from docs/aeat-schemas + qualified cert
+[ ] Official AEAT PDF diff (browser)
+[ ] UI: F-keys, dialogs, modules — Grok lane, not fiscal blocker
+[ ] Nested SupermarketPOS/ cleanup
+
+NOT AEAT-wire-ready until cert + submission client exist.
+================================================================================
