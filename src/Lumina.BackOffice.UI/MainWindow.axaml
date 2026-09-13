@@ -1,12 +1,60 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Lumina.BackOffice.UI.MainWindow"
-        Title="Lumina Back Office"
-        Width="1100" Height="750">
-    <!-- PLACEHOLDER — see Lumina.Pos.UI/MainWindow.axaml for the same note. -->
-    <StackPanel Margin="24" Spacing="12">
-        <TextBlock FontSize="20" FontWeight="Bold" Text="Lumina Back Office — backend wired, UI pending" />
-        <TextBlock TextWrapping="Wrap"
-                   Text="Replace MainWindow.axaml with the real back-office shell. App.Services exposes the full backend DI container." />
-    </StackPanel>
+        Title="Lumina Back Office — GesVent"
+        Width="1280" Height="800"
+        MinWidth="1000" MinHeight="640"
+        WindowStartupLocation="CenterScreen"
+        Background="#E8EEF4">
+
+    <Grid ColumnDefinitions="236,*">
+        <Border Background="#0E2A47">
+            <DockPanel>
+                <Border DockPanel.Dock="Top" Padding="18,20">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#7DD3E8" />
+                        <TextBlock Text="Back office" FontSize="20" FontWeight="Bold" Foreground="White" />
+                        <TextBlock Text="Misma IA que GesVent 8" FontSize="11" Foreground="#8BA3BD" />
+                    </StackPanel>
+                </Border>
+                <StackPanel Margin="0,8">
+                    <TextBlock Text="GESTIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,8,12,4" />
+                    <Button Content="Artículos" Classes="gv-nav selected" />
+                    <Button Content="Almacén" Classes="gv-nav" />
+                    <Button Content="Compras" Classes="gv-nav" />
+                    <Button Content="Ventas" Classes="gv-nav" />
+                    <TextBlock Text="ANÁLISIS" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,16,12,4" />
+                    <Button Content="Informes" Classes="gv-nav" />
+                    <Button Content="Tablas generales" Classes="gv-nav" />
+                    <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,16,12,4" />
+                    <Button Content="Sistema" Classes="gv-nav" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <DockPanel Grid.Column="1">
+            <Border DockPanel.Dock="Top" Background="White" Padding="20,12" BorderBrush="#D5E0EA" BorderThickness="0,0,0,1">
+                <StackPanel>
+                    <TextBlock Text="Artículos" FontSize="18" FontWeight="Bold" Foreground="#0F2744" />
+                    <TextBlock Text="El TPV comparte este mapa de módulos. El back office aún no está enlazado a servicios."
+                               FontSize="12" Foreground="#5B6B7C" Margin="0,2,0,0" />
+                </StackPanel>
+            </Border>
+            <ScrollViewer>
+                <StackPanel Margin="28" Spacing="16" MaxWidth="760" HorizontalAlignment="Left">
+                    <TextBlock TextWrapping="Wrap" FontSize="14" Foreground="#5B6B7C" LineHeight="22"
+                               Text="Abra Lumina.Pos.UI para catálogo, stock y caja reales. Esta ventana es el cascarón de gestión (empresa, informes, compras) con la misma barra izquierda que MENU.XML." />
+                    <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#D5E0EA" BorderThickness="1">
+                        <StackPanel Spacing="8">
+                            <TextBlock Text="Próximo cableado" FontWeight="SemiBold" Foreground="#0F2744" />
+                            <TextBlock Text="• ARTART — mismo IProductCatalogueService que el TPV" Foreground="#5B6B7C" />
+                            <TextBlock Text="• TABCLI / TABPRO — maestros de cliente y proveedor" Foreground="#5B6B7C" />
+                            <TextBlock Text="• COM / VEN — documentos, no tickets" Foreground="#5B6B7C" />
+                            <TextBlock Text="• SISCFG — sustituir CONFIG.XML por appsettings versionado" Foreground="#5B6B7C" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Grid>
 </Window>

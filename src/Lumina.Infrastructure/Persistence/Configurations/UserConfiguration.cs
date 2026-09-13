@@ -1,6 +1,9 @@
+using System.Linq;
 using Lumina.Domain.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Lumina.Infrastructure.Persistence.Configurations;
 
@@ -15,14 +18,26 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         b.Property(u => u.PasswordHash).IsRequired().HasMaxLength(300);
         b.HasIndex(u => new { u.TenantId, u.Username }).IsUnique();
 
-        // RoleIds stored as a comma-separated string for Phase 1 simplicity (SQLite,
-        // no join table yet). Revisit as a proper many-to-many join entity if role
-        // assignment ever needs its own metadata (assigned-by, assigned-at, etc).
-        b.Property<string>("RoleIdsCsv")
-            .HasColumnName("RoleIds")
-            .HasMaxLength(2000);
+        // RoleIds lives in private field _roleIds (List<Guid>). Persist as CSV.
+        var roleIdsConverter = new ValueConverter<List<Guid>, string>(
+            v => string.Join(",", v),
+            v => string.IsNullOrWhiteSpace(v)
+                ? new List<Guid>()
+                : v.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .Select(Guid.Parse)
+                    .ToList());
 
-        b.Metadata.FindNavigation(nameof(User.RoleIds))?.SetPropertyAccessMode(Microsoft.EntityFrameworkCore.PropertyAccessMode.Field);
+        var roleIdsComparer = new ValueComparer<List<Guid>>(
+            (a, b) => (a == null && b == null) || (a != null && b != null && a.SequenceEqual(b)),
+            v => v == null ? 0 : v.Aggregate(0, (h, g) => HashCode.Combine(h, g.GetHashCode())),
+            v => v == null ? new List<Guid>() : v.ToList());
+
+        b.Property<List<Guid>>("_roleIds")
+            .HasField("_roleIds")
+            .HasConversion(roleIdsConverter)
+            .HasColumnName("RoleIds")
+            .HasMaxLength(2000)
+            .Metadata.SetValueComparer(roleIdsComparer);
     }
 }
 
@@ -35,25 +50,26 @@ public class RoleConfiguration : IEntityTypeConfiguration<Role>
         b.Property(r => r.Name).IsRequired().HasMaxLength(100);
         b.HasIndex(r => new { r.TenantId, r.Name }).IsUnique();
 
-        // Capabilities stored as a comma-separated string for Phase 1 (SQLite has no
-        // native array/set type). Swap for a proper value converter or join table
-        // when moving to Postgres, which supports text[] natively.
-        b.Property<string>("CapabilitiesCsv")
+        // Capabilities lives in private field _capabilities (HashSet<string>). Persist as CSV.
+        var capsConverter = new ValueConverter<HashSet<string>, string>(
+            v => string.Join(",", v),
+            v => string.IsNullOrWhiteSpace(v)
+                ? new HashSet<string>(StringComparer.Ordinal)
+                : v.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToHashSet(StringComparer.Ordinal));
+
+        var capsComparer = new ValueComparer<HashSet<string>>(
+            (a, b) => (a == null && b == null) || (a != null && b != null && a.SetEquals(b)),
+            v => v == null ? 0 : v.Aggregate(0, (h, s) => HashCode.Combine(h, s.GetHashCode(StringComparison.Ordinal))),
+            v => v == null
+                ? new HashSet<string>(StringComparer.Ordinal)
+                : new HashSet<string>(v, StringComparer.Ordinal));
+
+        b.Property<HashSet<string>>("_capabilities")
+            .HasField("_capabilities")
+            .HasConversion(capsConverter)
             .HasColumnName("Capabilities")
-            .HasMaxLength(2000);
+            .HasMaxLength(2000)
+            .Metadata.SetValueComparer(capsComparer);
     }
 }
-
-/* Implementation note for whoever picks up the EF Core value-converter wiring:
- * User.RoleIds and Role.Capabilities are exposed as read-only collections on the
- * domain model (encapsulation per the blueprint's "rich domain objects, not
- * DataRows" principle). EF Core needs either:
- *   (a) backing-field access configured explicitly (started above), plus a
- *       ValueConverter<HashSet<string>, string> / List<Guid>, string> for the CSV
- *       columns, or
- *   (b) a shadow join table (cleaner, recommended) once this compiles and the first
- *       migration is generated.
- * Left as a Phase 1 follow-up rather than guessed at without a live EF Core tool to
- * verify the converter compiles — flagging explicitly instead of shipping something
- * that looks done but silently doesn't round-trip.
- */

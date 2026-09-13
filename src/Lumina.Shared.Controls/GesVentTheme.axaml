@@ -1,0 +1,62 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources>
+    <SolidColorBrush x:Key="GvNavy" Color="#0E2A47" />
+    <SolidColorBrush x:Key="GvNavyMid" Color="#163A5F" />
+    <SolidColorBrush x:Key="GvAccent" Color="#1B8FB5" />
+    <SolidColorBrush x:Key="GvAccentDeep" Color="#146F8C" />
+    <SolidColorBrush x:Key="GvCanvas" Color="#E8EEF4" />
+    <SolidColorBrush x:Key="GvCard" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="GvText" Color="#0F2744" />
+    <SolidColorBrush x:Key="GvMuted" Color="#5B6B7C" />
+    <SolidColorBrush x:Key="GvLine" Color="#D5E0EA" />
+    <SolidColorBrush x:Key="GvTill" Color="#0B1220" />
+    <SolidColorBrush x:Key="GvTillCard" Color="#121A2B" />
+  </Styles.Resources>
+
+  <Style Selector="Button.gv-nav">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="#C9D8E8" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="Padding" Value="14,11" />
+    <Setter Property="Margin" Value="8,2" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontSize" Value="13" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Button.gv-nav:pointerover">
+    <Setter Property="Background" Value="#1A3F63" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+  <Style Selector="Button.gv-nav.selected">
+    <Setter Property="Background" Value="#1B8FB5" />
+    <Setter Property="Foreground" Value="White" />
+  </Style>
+
+  <Style Selector="Button.gv-primary">
+    <Setter Property="Background" Value="#1B8FB5" />
+    <Setter Property="Foreground" Value="White" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="16,10" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+  <Style Selector="Button.gv-primary:pointerover">
+    <Setter Property="Background" Value="#146F8C" />
+  </Style>
+
+  <Style Selector="Button.gv-ghost">
+    <Setter Property="Background" Value="#163A5F" />
+    <Setter Property="Foreground" Value="#E8F4FA" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="BorderThickness" Value="0" />
+  </Style>
+
+  <Style Selector="TextBox.gv-field">
+    <Setter Property="MinHeight" Value="40" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="FontSize" Value="14" />
+  </Style>
+</Styles>

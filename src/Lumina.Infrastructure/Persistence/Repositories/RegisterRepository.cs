@@ -11,4 +11,7 @@ public class RegisterRepository : IRegisterRepository
 
     public Task<Register?> FindByIdAsync(Guid registerId, CancellationToken ct = default) =>
         _db.Registers.FirstOrDefaultAsync(r => r.Id == registerId, ct);
+
+    public Task<Register?> FindOpenByStoreIdAsync(Guid storeId, CancellationToken ct = default) =>
+        _db.Registers.FirstOrDefaultAsync(r => r.StoreId == storeId && r.IsOpen, ct);
 }

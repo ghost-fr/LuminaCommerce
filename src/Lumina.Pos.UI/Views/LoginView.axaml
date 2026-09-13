@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.LoginView"
+             x:DataType="vm:LoginViewModel"
+             Background="#0E2A47">
+
+    <Grid>
+        <Border Width="420" HorizontalAlignment="Center" VerticalAlignment="Center"
+                Background="White" CornerRadius="16" Padding="36,32"
+                BoxShadow="0 18 48 0 #40000000">
+            <StackPanel Spacing="14">
+                <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#1B8FB5"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="GesVent"
+                           FontSize="28"
+                           FontWeight="Bold"
+                           Foreground="#0F2744"
+                           HorizontalAlignment="Center" />
+                <TextBlock Text="Identifíquese para continuar"
+                           Foreground="#5B6B7C"
+                           HorizontalAlignment="Center"
+                           Margin="0,0,0,8" />
+
+                <TextBox Watermark="Usuario"
+                         Classes="gv-field"
+                         Text="{Binding Username}"
+                         IsEnabled="{Binding !IsBusy}" />
+
+                <TextBox Watermark="Contraseña"
+                         Text="{Binding Password}"
+                         PasswordChar="•"
+                         Classes="gv-field"
+                         IsEnabled="{Binding !IsBusy}" />
+
+                <TextBlock Text="{Binding ErrorMessage}"
+                           Foreground="#C24141"
+                           TextWrapping="Wrap"
+                           IsVisible="{Binding ErrorMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+                <Button Content="Entrar"
+                        Command="{Binding LoginCommand}"
+                        Classes="gv-primary"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        MinHeight="44"
+                        FontSize="15"
+                        Margin="0,6,0,0" />
+
+                <TextBlock Text="Comprobando…"
+                           IsVisible="{Binding IsBusy}"
+                           Foreground="#5B6B7C"
+                           HorizontalAlignment="Center" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</UserControl>

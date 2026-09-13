@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.StockView"
+             x:DataType="vm:StockViewModel"
+             Background="#E8EEF4">
+
+    <ScrollViewer>
+        <StackPanel Margin="20" Spacing="14">
+            <TextBlock Text="Existencias · SISLIS / SISINV"
+                       FontSize="12" FontWeight="SemiBold" Foreground="#1B8FB5" />
+
+            <Border Background="#FFF8E8" CornerRadius="10" Padding="14" BorderBrush="#F0D48A" BorderThickness="1">
+                <TextBlock Text="{Binding BackendBanner}"
+                           TextWrapping="Wrap"
+                           Foreground="#7A5B12" />
+            </Border>
+
+            <Grid ColumnDefinitions="*,Auto">
+                <TextBox Text="{Binding FilterText}"
+                         Classes="gv-field"
+                         Watermark="Filtrar código o nombre…" />
+                <Button Grid.Column="1"
+                        Content="Actualizar"
+                        Classes="gv-primary"
+                        Command="{Binding RefreshCommand}"
+                        Margin="10,0,0,0"
+                        MinWidth="120" />
+            </Grid>
+
+            <TextBlock Text="{Binding StatusMessage}" Foreground="#5B6B7C" FontSize="12" />
+
+            <Border Background="White" CornerRadius="12" BorderBrush="#D5E0EA" BorderThickness="1" ClipToBounds="True">
+                <DataGrid ItemsSource="{Binding Balances}"
+                          IsReadOnly="True"
+                          AutoGenerateColumns="False"
+                          Height="240"
+                          GridLinesVisibility="Horizontal"
+                          BorderThickness="0"
+                          Background="White"
+                          Foreground="#0F2744">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Código" Binding="{Binding Barcode}" Width="130" />
+                        <DataGridTextColumn Header="Artículo" Binding="{Binding ProductName}" Width="*" />
+                        <DataGridTextColumn Header="Stock" Binding="{Binding OnHand}" Width="90" />
+                        <DataGridTextColumn Header="Reservado" Binding="{Binding Reserved}" Width="100" />
+                        <DataGridTextColumn Header="Disponible" Binding="{Binding Available}" Width="100" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Border>
+
+            <Grid ColumnDefinitions="*,*" IsEnabled="{Binding CanAdjust}">
+                <Border Grid.Column="0" Background="White" CornerRadius="12" Padding="16" Margin="0,0,8,0"
+                        BorderBrush="#D5E0EA" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Ajuste (+/−)" FontWeight="SemiBold" Foreground="#0F2744" />
+                        <TextBox Text="{Binding AdjustBarcode}" Classes="gv-field" Watermark="Código de barras" />
+                        <TextBox Text="{Binding AdjustDeltaText}" Classes="gv-field" Watermark="Delta (p. ej. -2 o 5)" />
+                        <TextBox Text="{Binding AdjustNote}" Classes="gv-field" Watermark="Motivo" />
+                        <Button Content="Aplicar ajuste" Command="{Binding AdjustCommand}" Classes="gv-primary" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Background="White" CornerRadius="12" Padding="16" Margin="8,0,0,0"
+                        BorderBrush="#D5E0EA" BorderThickness="1">
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Inventario físico" FontWeight="SemiBold" Foreground="#0F2744" />
+                        <TextBox Text="{Binding CountBarcode}" Classes="gv-field" Watermark="Código de barras" />
+                        <TextBox Text="{Binding CountQtyText}" Classes="gv-field" Watermark="Cantidad contada" />
+                        <TextBox Text="{Binding CountNote}" Classes="gv-field" Watermark="Motivo" />
+                        <Button Content="Fijar recuento" Command="{Binding CountCommand}" Classes="gv-primary" HorizontalAlignment="Left" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

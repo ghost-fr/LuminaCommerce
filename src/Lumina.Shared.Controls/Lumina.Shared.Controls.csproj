@@ -6,6 +6,9 @@
     <RootNamespace>Lumina.Shared.Controls</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <AvaloniaResource Include="GesVentTheme.axaml" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="Avalonia" Version="11.1.3" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.1.3" />
   </ItemGroup>

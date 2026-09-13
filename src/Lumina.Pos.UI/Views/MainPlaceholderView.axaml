@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.MainPlaceholderView"
+             x:DataType="vm:MainPlaceholderViewModel"
+             Background="#E8EEF4">
+
+    <StackPanel Margin="36" Spacing="16" MaxWidth="640" HorizontalAlignment="Left">
+        <TextBlock Text="{Binding Greeting}"
+                   FontSize="26"
+                   FontWeight="Bold"
+                   Foreground="#0F2744" />
+
+        <TextBlock Text="Este usuario no tiene TPV, catálogo ni almacén. Use Sistema cuando existan roles, o inicie sesión con un cajero."
+                   Foreground="#5B6B7C"
+                   TextWrapping="Wrap" />
+
+        <Border Background="White" CornerRadius="12" Padding="18" BorderBrush="#D5E0EA" BorderThickness="1">
+            <StackPanel Spacing="6">
+                <TextBlock Text="Permisos de sesión" FontWeight="SemiBold" Foreground="#0F2744" />
+                <TextBlock Text="{Binding CapabilitiesSummary}"
+                           TextWrapping="Wrap"
+                           FontFamily="Consolas, Courier New, monospace"
+                           FontSize="13"
+                           Foreground="#5B6B7C" />
+            </StackPanel>
+        </Border>
+    </StackPanel>
+</UserControl>
