@@ -4,31 +4,21 @@
         xmlns:views="using:Lumina.Pos.UI.Views"
         x:Class="Lumina.Pos.UI.MainWindow"
         x:DataType="vm:ShellViewModel"
-        Title="Lumina POS"
+        Title="Lumina POS — Local"
         Width="1480" Height="920"
-        MinWidth="1200" MinHeight="720"
+        MinWidth="1100" MinHeight="700"
         WindowStartupLocation="CenterScreen"
         Background="#E8EEF4">
 
     <Window.DataTemplates>
-        <DataTemplate DataType="vm:LoginViewModel">
-            <views:LoginView />
-        </DataTemplate>
-        <DataTemplate DataType="vm:PosCartViewModel">
-            <views:PosCartView />
-        </DataTemplate>
-        <DataTemplate DataType="vm:CatalogueViewModel">
-            <views:CatalogueView />
-        </DataTemplate>
-        <DataTemplate DataType="vm:StockViewModel">
-            <views:StockView />
-        </DataTemplate>
-        <DataTemplate DataType="vm:MainPlaceholderViewModel">
-            <views:MainPlaceholderView />
-        </DataTemplate>
-        <DataTemplate DataType="vm:ModulePlaceholderViewModel">
-            <views:ModulePlaceholderView />
-        </DataTemplate>
+        <DataTemplate DataType="vm:LoginViewModel"><views:LoginView /></DataTemplate>
+        <DataTemplate DataType="vm:PosCartViewModel"><views:PosCartView /></DataTemplate>
+        <DataTemplate DataType="vm:CatalogueViewModel"><views:CatalogueView /></DataTemplate>
+        <DataTemplate DataType="vm:StockViewModel"><views:StockView /></DataTemplate>
+        <DataTemplate DataType="vm:MainPlaceholderViewModel"><views:MainPlaceholderView /></DataTemplate>
+        <DataTemplate DataType="vm:ModulePlaceholderViewModel"><views:ModulePlaceholderView /></DataTemplate>
+        <DataTemplate DataType="vm:SettingsViewModel"><views:SettingsView /></DataTemplate>
+        <DataTemplate DataType="vm:ProductAdminViewModel"><views:ProductAdminView /></DataTemplate>
     </Window.DataTemplates>
 
     <Grid ColumnDefinitions="Auto,*">
@@ -38,108 +28,50 @@
                     <StackPanel Spacing="2">
                         <TextBlock Text="LUMINA" FontSize="11" FontWeight="Bold" Foreground="#7DD3E8" />
                         <TextBlock Text="Punto de venta" FontSize="18" FontWeight="Bold" Foreground="White" />
-                        <TextBlock Text="Retail · TPV" FontSize="11" Foreground="#8BA3BD" />
+                        <TextBlock Text="Local · Simple" FontSize="11" Foreground="#8BA3BD" />
                     </StackPanel>
                 </Border>
-
                 <Border DockPanel.Dock="Bottom" Padding="12,14" BorderBrush="#1A3F63" BorderThickness="0,1,0,0">
-                    <Button Content="Cerrar sesión"
-                            Command="{Binding LogoutCommand}"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Center"
-                            Padding="12,10"
-                            Background="#1A3F63"
-                            Foreground="#E0F2FE" />
+                    <Button Content="Cerrar sesión" Command="{Binding LogoutCommand}"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center"
+                            Padding="12,10" Background="#1A3F63" Foreground="#E0F2FE" />
                 </Border>
-
                 <ScrollViewer>
                     <StackPanel Margin="0,8,0,8">
-                        <TextBlock Text="OPERACIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
-                                   Margin="22,8,12,4" />
-                        <Button Content="Caja / TPV"
-                                Command="{Binding NavigateRegisterCommand}"
-                                IsVisible="{Binding CanOperateRegister}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2"
-                                Padding="14,12"
-                                Background="#146F8C"
-                                Foreground="White"
-                                FontWeight="SemiBold" />
-
-                        <TextBlock Text="GESTIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
-                                   Margin="22,16,12,4" />
-                        <Button Content="Artículos"
-                                Command="{Binding NavigateCatalogueCommand}"
-                                IsVisible="{Binding CanBrowseCatalogue}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-                        <Button Content="Almacén"
-                                Command="{Binding NavigateStockCommand}"
-                                IsVisible="{Binding CanManageStock}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-                        <Button Content="Compras"
-                                Command="{Binding NavigateComprasCommand}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-                        <Button Content="Ventas"
-                                Command="{Binding NavigateVentasCommand}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-
-                        <TextBlock Text="ANÁLISIS" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
-                                   Margin="22,16,12,4" />
-                        <Button Content="Informes"
-                                Command="{Binding NavigateInformesCommand}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-                        <Button Content="Tablas"
-                                Command="{Binding NavigateTablasCommand}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
-
-                        <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8"
-                                   Margin="22,16,12,4" />
-                        <Button Content="Sistema"
-                                Command="{Binding NavigateSistemaCommand}"
-                                HorizontalAlignment="Stretch"
-                                HorizontalContentAlignment="Left"
-                                Margin="10,2" Padding="14,10"
-                                Background="Transparent" Foreground="#D1E5F5" />
+                        <TextBlock Text="OPERACIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,8,12,4" />
+                        <Button Content="Caja / TPV" Command="{Binding NavigateRegisterCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,12" Background="#146F8C" Foreground="White" FontWeight="SemiBold" />
+                        <TextBlock Text="GESTIÓN" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,16,12,4" />
+                        <Button Content="Artículos" Command="{Binding NavigateCatalogueCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10" Background="Transparent" Foreground="#D1E5F5" />
+                        <Button Content="Productos locales" Command="{Binding NavigateProductsCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10" Background="Transparent" Foreground="#D1E5F5" />
+                        <Button Content="Almacén" Command="{Binding NavigateStockCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10" Background="Transparent" Foreground="#D1E5F5" />
+                        <TextBlock Text="SISTEMA" FontSize="10" FontWeight="Bold" Foreground="#6B8CA8" Margin="22,16,12,4" />
+                        <Button Content="Configuración" Command="{Binding NavigateSettingsCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10" Background="#1A3F63" Foreground="#7DD3FC" FontWeight="SemiBold" />
+                        <Button Content="Sistema" Command="{Binding NavigateSistemaCommand}"
+                                HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                Margin="10,2" Padding="14,10" Background="Transparent" Foreground="#D1E5F5" />
                     </StackPanel>
                 </ScrollViewer>
             </DockPanel>
         </Border>
-
         <DockPanel Grid.Column="1">
-            <Border DockPanel.Dock="Top"
-                    Background="White"
-                    Padding="20,12"
-                    BorderBrush="#D5E0EA"
-                    BorderThickness="0,0,0,1"
-                    IsVisible="{Binding IsLoggedIn}">
+            <Border DockPanel.Dock="Top" Background="White" Padding="20,12"
+                    BorderBrush="#D5E0EA" BorderThickness="0,0,0,1" IsVisible="{Binding IsLoggedIn}">
                 <StackPanel>
                     <TextBlock Text="{Binding HeaderTitle}" FontSize="18" FontWeight="Bold" Foreground="#0F2744" />
                     <TextBlock Text="{Binding StatusText}" FontSize="12" Foreground="#5B6B7C" Margin="0,2,0,0" />
                 </StackPanel>
             </Border>
-
-            <ContentControl Content="{Binding CurrentContent}"
-                            HorizontalAlignment="Stretch"
-                            VerticalAlignment="Stretch" />
+            <ContentControl Content="{Binding CurrentContent}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
         </DockPanel>
     </Grid>
 </Window>
