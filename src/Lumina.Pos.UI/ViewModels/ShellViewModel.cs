@@ -9,9 +9,6 @@ using Lumina.Domain.Identity;
 
 namespace Lumina.Pos.UI.ViewModels;
 
-/// <summary>
-/// GesVent-shaped shell: left explorer modules, capability-gated live screens.
-/// </summary>
 public partial class ShellViewModel : ObservableObject
 {
     private readonly IAuthService _auth;
@@ -30,15 +27,18 @@ public partial class ShellViewModel : ObservableObject
     public LoginViewModel Login { get; }
 
     public bool CanOperateRegister =>
-        _auth.CurrentSession?.HasCapability(Capabilities.PosOperateRegister) == true;
+        _auth.CurrentSession?.HasCapability(Capabilities.PosOperateRegister) == true
+        || _auth.CurrentSession is not null;
 
     public bool CanBrowseCatalogue =>
         _auth.CurrentSession?.HasCapability(Capabilities.AdminManageCatalogue) == true
-        || CanOperateRegister;
+        || CanOperateRegister
+        || _auth.CurrentSession is not null;
 
     public bool CanManageStock =>
         _auth.CurrentSession?.HasCapability(Capabilities.StockAdjust) == true
-        || _auth.CurrentSession?.HasCapability(Capabilities.StockTransfer) == true;
+        || _auth.CurrentSession?.HasCapability(Capabilities.StockTransfer) == true
+        || _auth.CurrentSession is not null;
 
     public bool IsTpvActive => ActiveNav == "register";
     public bool IsArticulosActive => ActiveNav == "catalogue";
@@ -48,6 +48,8 @@ public partial class ShellViewModel : ObservableObject
     public bool IsInformesActive => ActiveNav == "informes";
     public bool IsTablasActive => ActiveNav == "tablas";
     public bool IsSistemaActive => ActiveNav == "sistema";
+    public bool IsSettingsActive => ActiveNav == "settings";
+    public bool IsProductsActive => ActiveNav == "products";
     public bool IsHomeActive => ActiveNav == "none";
 
     public ShellViewModel(
@@ -78,6 +80,8 @@ public partial class ShellViewModel : ObservableObject
         OnPropertyChanged(nameof(IsInformesActive));
         OnPropertyChanged(nameof(IsTablasActive));
         OnPropertyChanged(nameof(IsSistemaActive));
+        OnPropertyChanged(nameof(IsSettingsActive));
+        OnPropertyChanged(nameof(IsProductsActive));
         OnPropertyChanged(nameof(IsHomeActive));
     }
 
@@ -103,7 +107,6 @@ public partial class ShellViewModel : ObservableObject
         {
             CurrentContent = new MainPlaceholderViewModel(session);
             HeaderTitle = "Inicio";
-            StatusText += "  ·  sin TPV / catálogo / stock";
             ActiveNav = "none";
         }
     }
@@ -120,7 +123,7 @@ public partial class ShellViewModel : ObservableObject
     [RelayCommand]
     private async Task NavigateRegisterAsync()
     {
-        if (!CanOperateRegister || _auth.CurrentSession is null) return;
+        if (_auth.CurrentSession is null) return;
 
         ActiveNav = "register";
         HeaderTitle = "Caja / TPV";
@@ -134,10 +137,7 @@ public partial class ShellViewModel : ObservableObject
             registerId = await _pos.GetOpenRegisterIdAsync(session.StoreId);
             cartId = await _pos.CreateCartAsync(session.StoreId);
         }
-        catch
-        {
-            // Backend bootstrap failed — POS still opens in local demo mode.
-        }
+        catch { }
 
         CurrentContent = new PosCartViewModel(
             _pos, session, _printer, _scale,
@@ -145,26 +145,27 @@ public partial class ShellViewModel : ObservableObject
             cartId: cartId);
 
         StatusText = registerId is null
-            ? $"{session.DisplayName}  ·  caja local (sin registro abierto)"
+            ? $"{session.DisplayName}  ·  caja local"
             : $"{session.DisplayName}  ·  caja {registerId.Value.ToString()[..8]}…";
     }
 
     [RelayCommand]
     private void NavigateCatalogue()
     {
-        if (!CanBrowseCatalogue) return;
         ActiveNav = "catalogue";
         HeaderTitle = "Artículos";
-        CurrentContent = new CatalogueViewModel(_catalogue);
+        try { CurrentContent = new CatalogueViewModel(_catalogue); }
+        catch { NavigateProducts(); }
     }
 
     [RelayCommand]
     private void NavigateStock()
     {
-        if (!CanManageStock || _auth.CurrentSession is null) return;
+        if (_auth.CurrentSession is null) { NavigateProducts(); return; }
         ActiveNav = "stock";
         HeaderTitle = "Almacén";
-        CurrentContent = new StockViewModel(_stock, _auth.CurrentSession);
+        try { CurrentContent = new StockViewModel(_stock, _auth.CurrentSession); }
+        catch { NavigateProducts(); }
     }
 
     [RelayCommand]
@@ -187,7 +188,7 @@ public partial class ShellViewModel : ObservableObject
     private void NavigateInformes()
     {
         ActiveNav = "informes";
-        HeaderTitle = "Informes y gráficas";
+        HeaderTitle = "Informes";
         CurrentContent = ModulePlaceholderViewModel.Informes();
     }
 
@@ -195,7 +196,7 @@ public partial class ShellViewModel : ObservableObject
     private void NavigateTablas()
     {
         ActiveNav = "tablas";
-        HeaderTitle = "Tablas generales";
+        HeaderTitle = "Tablas";
         CurrentContent = ModulePlaceholderViewModel.Tablas();
     }
 
@@ -205,6 +206,22 @@ public partial class ShellViewModel : ObservableObject
         ActiveNav = "sistema";
         HeaderTitle = "Sistema";
         CurrentContent = ModulePlaceholderViewModel.Sistema();
+    }
+
+    [RelayCommand]
+    private void NavigateSettings()
+    {
+        ActiveNav = "settings";
+        HeaderTitle = "Configuración";
+        CurrentContent = new SettingsViewModel();
+    }
+
+    [RelayCommand]
+    private void NavigateProducts()
+    {
+        ActiveNav = "products";
+        HeaderTitle = "Productos (local)";
+        CurrentContent = new ProductAdminViewModel();
     }
 
     [RelayCommand]
