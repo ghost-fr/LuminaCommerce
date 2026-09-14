@@ -1,0 +1,43 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Color x:Key="Ink900">#0F1720</Color>
+  <Color x:Key="Ink700">#33414F</Color>
+  <Color x:Key="Ink500">#5B6B79</Color>
+  <Color x:Key="Ink300">#9AA7B2</Color>
+  <Color x:Key="Ink100">#E3E8EC</Color>
+  <Color x:Key="Surface0">#FFFFFF</Color>
+  <Color x:Key="Surface50">#F6F8F9</Color>
+  <Color x:Key="Surface100">#EDF1F3</Color>
+  <Color x:Key="Border">#D7DEE3</Color>
+  <Color x:Key="BrandPrimary">#0B5FA5</Color>
+  <Color x:Key="BrandPrimaryHover">#0A5390</Color>
+  <Color x:Key="BrandPrimaryPressed">#08477A</Color>
+  <Color x:Key="BrandAccent">#F2A93B</Color>
+  <Color x:Key="Success">#1E8E5A</Color>
+  <Color x:Key="SuccessSurface">#E4F5EC</Color>
+  <Color x:Key="Warning">#B9760A</Color>
+  <Color x:Key="WarningSurface">#FBF0DE</Color>
+  <Color x:Key="Danger">#C2372A</Color>
+  <Color x:Key="DangerSurface">#FBE7E4</Color>
+  <Color x:Key="Info">#2C6ECB</Color>
+  <Color x:Key="InfoSurface">#E7F0FC</Color>
+  <SolidColorBrush x:Key="InkPrimaryBrush" Color="{StaticResource Ink900}"/>
+  <SolidColorBrush x:Key="InkSecondaryBrush" Color="{StaticResource Ink500}"/>
+  <SolidColorBrush x:Key="InkMutedBrush" Color="{StaticResource Ink300}"/>
+  <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource Surface0}"/>
+  <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource Surface50}"/>
+  <SolidColorBrush x:Key="SurfaceSunkenBrush" Color="{StaticResource Surface100}"/>
+  <SolidColorBrush x:Key="BorderBrush1" Color="{StaticResource Border}"/>
+  <SolidColorBrush x:Key="BrandPrimaryBrush" Color="{StaticResource BrandPrimary}"/>
+  <SolidColorBrush x:Key="BrandPrimaryHoverBrush" Color="{StaticResource BrandPrimaryHover}"/>
+  <SolidColorBrush x:Key="BrandPrimaryPressedBrush" Color="{StaticResource BrandPrimaryPressed}"/>
+  <SolidColorBrush x:Key="BrandAccentBrush" Color="{StaticResource BrandAccent}"/>
+  <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource Success}"/>
+  <SolidColorBrush x:Key="SuccessSurfaceBrush" Color="{StaticResource SuccessSurface}"/>
+  <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource Warning}"/>
+  <SolidColorBrush x:Key="WarningSurfaceBrush" Color="{StaticResource WarningSurface}"/>
+  <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource Danger}"/>
+  <SolidColorBrush x:Key="DangerSurfaceBrush" Color="{StaticResource DangerSurface}"/>
+  <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource Info}"/>
+  <SolidColorBrush x:Key="InfoSurfaceBrush" Color="{StaticResource InfoSurface}"/>
+</ResourceDictionary>
