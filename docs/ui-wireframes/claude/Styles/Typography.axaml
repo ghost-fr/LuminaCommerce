@@ -1,0 +1,12 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System">
+  <FontFamily x:Key="FontSans">Inter, Segoe UI, system-ui, sans-serif</FontFamily>
+  <FontFamily x:Key="FontMono">Cascadia Mono, Consolas, monospace</FontFamily>
+  <sys:Double x:Key="FontSizeXs">11</sys:Double>
+  <sys:Double x:Key="FontSizeSm">12</sys:Double>
+  <sys:Double x:Key="FontSizeMd">14</sys:Double>
+  <sys:Double x:Key="FontSizeLg">16</sys:Double>
+  <sys:Double x:Key="FontSizeXl">20</sys:Double>
+  <sys:Double x:Key="FontSize2Xl">24</sys:Double>
+</ResourceDictionary>
