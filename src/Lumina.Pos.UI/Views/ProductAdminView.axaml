@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             xmlns:svc="using:Lumina.Pos.UI.Services"
+             x:Class="Lumina.Pos.UI.Views.ProductAdminView"
+             x:DataType="vm:ProductAdminViewModel"
+             Background="#0A0F1A">
+  <Grid ColumnDefinitions="*,360" Margin="20">
+    <Border Background="#111827" CornerRadius="12" Padding="16" Margin="0,0,12,0">
+      <DockPanel>
+        <TextBlock DockPanel.Dock="Top" Text="Productos locales" FontSize="18" FontWeight="Bold" Foreground="#F8FAFC" Margin="0,0,0,12" />
+        <TextBlock DockPanel.Dock="Bottom" Text="{Binding StatusMessage}" Foreground="#7DD3FC" Margin="0,8,0,0" />
+        <ListBox ItemsSource="{Binding Products}" SelectedItem="{Binding Selected}" Background="Transparent" BorderThickness="0">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="svc:LocalProductDto">
+              <Grid ColumnDefinitions="*,Auto" Margin="0,6">
+                <StackPanel>
+                  <TextBlock Text="{Binding Name}" FontWeight="SemiBold" Foreground="#F8FAFC" />
+                  <TextBlock Text="{Binding Code}" FontSize="11" Foreground="#94A3B8" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding Price, StringFormat='{}{0:N2} €'}" FontWeight="Bold" Foreground="#38BDF8" VerticalAlignment="Center" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </DockPanel>
+    </Border>
+    <Border Grid.Column="1" Background="#111827" CornerRadius="12" Padding="16">
+      <StackPanel Spacing="10">
+        <TextBlock Text="Añadir producto" FontSize="16" FontWeight="Bold" Foreground="#F8FAFC" />
+        <TextBlock Text="Código" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding Code}" Watermark="Auto si vacío" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <TextBlock Text="Nombre *" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding Name}" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <TextBlock Text="Precio *" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding Price}" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <TextBlock Text="IVA" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding VatRate}" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <TextBlock Text="Código de barras" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding Barcode}" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <TextBlock Text="Familia" FontSize="11" Foreground="#94A3B8" />
+        <TextBox Text="{Binding Family}" MinHeight="40" Background="#0A0F1A" Foreground="#F8FAFC" />
+        <Button Content="Añadir" Command="{Binding AddProductCommand}" MinHeight="48" FontWeight="Bold" Background="#16A34A" Foreground="White" CornerRadius="8" />
+        <Button Content="Eliminar seleccionado" Command="{Binding DeleteSelectedCommand}" MinHeight="40" Background="#7F1D1D" Foreground="White" CornerRadius="8" />
+        <Button Content="Recargar" Command="{Binding ReloadCommand}" MinHeight="40" Background="#334155" Foreground="White" CornerRadius="8" />
+      </StackPanel>
+    </Border>
+  </Grid>
+</UserControl>

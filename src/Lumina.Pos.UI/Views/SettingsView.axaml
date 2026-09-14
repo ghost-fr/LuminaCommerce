@@ -1,0 +1,35 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Lumina.Pos.UI.ViewModels"
+             x:Class="Lumina.Pos.UI.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel"
+             Background="#0A0F1A">
+  <ScrollViewer Padding="24">
+    <StackPanel MaxWidth="640" Spacing="14">
+      <TextBlock Text="Configuración general" FontSize="22" FontWeight="Bold" Foreground="#F8FAFC" />
+      <TextBlock Text="{Binding SettingsPath, StringFormat='Archivo: {0}'}" FontSize="11" Foreground="#64748B" TextWrapping="Wrap" />
+      <TextBlock Text="Tienda" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" />
+      <TextBox Text="{Binding StoreName}" MinHeight="40" Background="#111827" Foreground="#F8FAFC" />
+      <TextBlock Text="Cadena de conexión SQLite" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" />
+      <TextBox Text="{Binding ConnectionString}" MinHeight="40" Background="#111827" Foreground="#F8FAFC" />
+      <TextBlock Text="LUMINA_TENANT_ID (opcional)" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" />
+      <TextBox Text="{Binding TenantId}" MinHeight="40" Background="#111827" Foreground="#F8FAFC" />
+      <Grid ColumnDefinitions="*,*">
+        <StackPanel>
+          <TextBlock Text="Moneda" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" />
+          <TextBox Text="{Binding CurrencySymbol}" MinHeight="40" MaxWidth="80" Background="#111827" Foreground="#F8FAFC" />
+        </StackPanel>
+        <StackPanel Grid.Column="1" Margin="16,0,0,0">
+          <TextBlock Text="IVA por defecto" FontSize="12" FontWeight="SemiBold" Foreground="#94A3B8" />
+          <TextBox Text="{Binding DefaultVatRate}" MinHeight="40" Background="#111827" Foreground="#F8FAFC" />
+        </StackPanel>
+      </Grid>
+      <CheckBox Content="Activar modo fiscal / Veri*Factu" IsChecked="{Binding FiscalEnabled}" Foreground="#E2E8F0" />
+      <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,16,0,0">
+        <Button Content="Guardar" Command="{Binding SaveCommand}" MinHeight="44" MinWidth="120" FontWeight="Bold" Background="#0284C7" Foreground="White" CornerRadius="8" />
+        <Button Content="Recargar" Command="{Binding ReloadCommand}" MinHeight="44" MinWidth="100" Background="#334155" Foreground="White" CornerRadius="8" />
+      </StackPanel>
+      <TextBlock Text="{Binding StatusMessage}" Foreground="#86EFAC" FontSize="13" />
+    </StackPanel>
+  </ScrollViewer>
+</UserControl>
